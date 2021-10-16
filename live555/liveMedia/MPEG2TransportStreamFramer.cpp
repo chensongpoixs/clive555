@@ -236,7 +236,7 @@ Boolean MPEG2TransportStreamFramer::updateTSPacketDurationEstimate(unsigned char
     // We're seeing this PID's PCR for the first time:
     pidStatus = new PIDStatus(clock, timeNow);
     fPIDStatusTable->Add((char*)pid, pidStatus);
-#ifdef DEBUG_PCR
+#ifdef _DEBUG_PCR
     fprintf(stderr, "PID 0x%x, FIRST PCR 0x%08x+%d:%03x == %f @ %f, pkt #%lu\n", pid, pcrBaseHigh, pkt[10]>>7, pcrExt, clock, timeNow, fTSPacketCount);
 #endif
   } else {
@@ -277,7 +277,7 @@ Boolean MPEG2TransportStreamFramer::updateTSPacketDurationEstimate(unsigned char
       pidStatus->firstClock = clock;
       pidStatus->firstRealTime = timeNow;
     }
-#ifdef DEBUG_PCR
+#ifdef _DEBUG_PCR
     fprintf(stderr, "PID 0x%x, PCR 0x%08x+%d:%03x == %f @ %f (diffs %f @ %f), pkt #%lu, discon %d => this duration %f, new estimate %f, mean PCR period=%f\n", pid, pcrBaseHigh, pkt[10]>>7, pcrExt, clock, timeNow, clock - pidStatus->firstClock, timeNow - pidStatus->firstRealTime, fTSPacketCount, discontinuity_indicator != 0, durationPerPacket, fTSPacketDurationEstimate, meanPCRPeriod );
 #endif
   }

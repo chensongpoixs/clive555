@@ -38,7 +38,7 @@ public:
     : RTSPRegisterSender(ourServer.envir(), remoteClientNameOrAddress, remoteClientPortNum, rtspURLToRegister,
 			 rtspRegisterResponseHandler, authenticator,
 			 requestStreamingViaTCP, proxyURLSuffix, True/*reuseConnection*/,
-#ifdef DEBUG
+#ifdef _DEBUG
 			 1/*verbosityLevel*/,
 #else
 			 0/*verbosityLevel*/,
@@ -126,7 +126,7 @@ public:
 			  char const* proxyURLSuffix)
     : RTSPDeregisterSender(ourServer.envir(), remoteClientNameOrAddress, remoteClientPortNum, rtspURLToDeregister,
 			 rtspDeregisterResponseHandler, authenticator, proxyURLSuffix,
-#ifdef DEBUG
+#ifdef _DEBUG
 			 1/*verbosityLevel*/,
 #else
 			 0/*verbosityLevel*/,

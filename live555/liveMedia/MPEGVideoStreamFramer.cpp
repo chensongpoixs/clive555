@@ -67,7 +67,7 @@ void MPEGVideoStreamFramer::reset() {
   gettimeofday(&fPresentationTimeBase, NULL);
 }
 
-#ifdef DEBUG
+#ifdef _DEBUG
 static struct timeval firstPT;
 #endif
 void MPEGVideoStreamFramer
@@ -96,7 +96,7 @@ void MPEGVideoStreamFramer
     fPresentationTime.tv_usec -= 1000000;
     ++fPresentationTime.tv_sec;
   }
-#ifdef DEBUG
+#ifdef _DEBUG
   if (firstPT.tv_sec == 0 && firstPT.tv_usec == 0) firstPT = fPresentationTime;
   struct timeval diffPT;
   diffPT.tv_sec = fPresentationTime.tv_sec - firstPT.tv_sec;
@@ -169,7 +169,7 @@ void MPEGVideoStreamFramer::continueReadProcessing() {
     fDurationInMicroseconds
       = (fFrameRate == 0.0 || ((int)fPictureCount) < 0) ? 0
       : (unsigned)((fPictureCount*1000000)/fFrameRate);
-#ifdef DEBUG
+#ifdef _DEBUG
     fprintf(stderr, "%d bytes @%u.%06d, fDurationInMicroseconds: %d ((%d*1000000)/%f)\n", acquiredFrameSize, fPresentationTime.tv_sec, fPresentationTime.tv_usec, fDurationInMicroseconds, fPictureCount, fFrameRate);
 #endif
     fPictureCount = 0;

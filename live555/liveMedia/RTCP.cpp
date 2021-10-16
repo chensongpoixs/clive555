@@ -88,7 +88,7 @@ void RTCPMemberDatabase::reapOldMembers(unsigned threshold) {
     uintptr_t timeCount;
     char const* key;
     while ((timeCount = (uintptr_t)(iter->next(key))) != 0) {
-#ifdef DEBUG
+#ifdef _DEBUG
       fprintf(stderr, "reap: checking SSRC 0x%lx: %ld (threshold %d)\n", (unsigned long)key, timeCount, threshold);
 #endif
       if (timeCount < (uintptr_t)threshold) { // this SSRC is old
@@ -100,7 +100,7 @@ void RTCPMemberDatabase::reapOldMembers(unsigned threshold) {
     delete iter;
 
     if (foundOldMember) {
-#ifdef DEBUG
+#ifdef _DEBUG
         fprintf(stderr, "reap: removing SSRC 0x%x\n", oldSSRC);
 #endif
 	fOurRTCPInstance.removeSSRC(oldSSRC, True);
@@ -138,7 +138,7 @@ RTCPInstance::RTCPInstance(UsageEnvironment& env, Groupsock* RTCPgs,
     fRRHandlerTask(NULL), fRRHandlerClientData(NULL),
     fSpecificRRHandlerTable(NULL),
     fAppHandlerTask(NULL), fAppHandlerClientData(NULL) {
-#ifdef DEBUG
+#ifdef _DEBUG
   fprintf(stderr, "RTCPInstance[%p]::RTCPInstance()\n", this);
 #endif
   if (fTotSessionBW == 0) { // not allowed!
@@ -181,7 +181,7 @@ struct RRHandlerRecord {
 };
 
 RTCPInstance::~RTCPInstance() {
-#ifdef DEBUG
+#ifdef _DEBUG
   fprintf(stderr, "RTCPInstance[%p]::~RTCPInstance()\n", this);
 #endif
   // Begin by sending a BYE.  We have to do this immediately, without
@@ -504,7 +504,7 @@ void RTCPInstance
     char* reason = NULL; // by default, unless/until a BYE packet with a 'reason' arrives
     unsigned char* pkt = fInBuf;
 
-#ifdef DEBUG
+#ifdef _DEBUG
     fprintf(stderr, "[%p]saw incoming RTCP packet (from ", this);
     if (tcpSocketNum < 0) {
       // Note that "fromAddressAndPort" is valid only if we're receiving over UDP (not over TCP):
@@ -529,7 +529,7 @@ void RTCPInstance
     unsigned rtcpHdr = ntohl(*(u_int32_t*)pkt);
     if ((rtcpHdr & 0xE0FE0000) != (0x80000000 | (RTCP_PT_SR<<16)) &&
 	(rtcpHdr & 0xE0FF0000) != (0x80000000 | (RTCP_PT_APP<<16))) {
-#ifdef DEBUG
+#ifdef _DEBUG
       fprintf(stderr, "rejected bad RTCP packet: header 0x%08x\n", rtcpHdr);
 #endif
       break;
@@ -563,7 +563,7 @@ void RTCPInstance
       Boolean subPacketOK = False;
       switch (pt) {
         case RTCP_PT_SR: {
-#ifdef DEBUG
+#ifdef _DEBUG
 	  fprintf(stderr, "SR\n");
 #endif
 	  if (length < 20) break; length -= 20;
@@ -586,7 +586,7 @@ void RTCPInstance
 	  // The rest of the SR is handled like a RR (so, no "break;" here)
 	}
         case RTCP_PT_RR: {
-#ifdef DEBUG
+#ifdef _DEBUG
 	  fprintf(stderr, "RR\n");
 #endif
 	  unsigned reportBlocksSize = rc*(6*4);
@@ -626,7 +626,7 @@ void RTCPInstance
 	  break;
 	}
         case RTCP_PT_BYE: {
-#ifdef DEBUG
+#ifdef _DEBUG
 	  fprintf(stderr, "BYE");
 #endif
 	  // Check whether there was a 'reason for leaving':
@@ -634,7 +634,7 @@ void RTCPInstance
 	    u_int8_t reasonLength = *pkt;
 	    if (reasonLength > length-1) {
 	      // The 'reason' length field is too large!
-#ifdef DEBUG
+#ifdef _DEBUG
 	      fprintf(stderr, "\nError: The 'reason' length %d is too large (it should be <= %d)\n",
 		      reasonLength, length-1);
 #endif
@@ -645,11 +645,11 @@ void RTCPInstance
 	      reason[i] = pkt[1+i];
 	    }
 	    reason[reasonLength] = '\0';
-#ifdef DEBUG
+#ifdef _DEBUG
 	    fprintf(stderr, " (reason:%s)", reason);
 #endif
 	  }
-#ifdef DEBUG
+#ifdef _DEBUG
 	  fprintf(stderr, "\n");
 #endif
 	  // If a 'BYE handler' was set, arrange for it to be called at the end of this routine.
@@ -671,22 +671,22 @@ void RTCPInstance
 	}
         case RTCP_PT_APP: {
 	  u_int8_t& subtype = rc; // In "APP" packets, the "rc" field gets used as "subtype"
-#ifdef DEBUG
+#ifdef _DEBUG
 	  fprintf(stderr, "APP (subtype 0x%02x)\n", subtype);
 #endif
 	  if (length < 4) {
-#ifdef DEBUG
+#ifdef _DEBUG
 	    fprintf(stderr, "\tError: No \"name\" field!\n");
 #endif
 	    break;
 	  }
 	  length -= 4;
-#ifdef DEBUG
+#ifdef _DEBUG
 	  fprintf(stderr, "\tname:%c%c%c%c\n", pkt[0], pkt[1], pkt[2], pkt[3]);
 #endif
 	  u_int32_t nameBytes = (pkt[0]<<24)|(pkt[1]<<16)|(pkt[2]<<8)|(pkt[3]);
 	  ADVANCE(4); // skip over "name", to the 'application-dependent data'
-#ifdef DEBUG
+#ifdef _DEBUG
 	  fprintf(stderr, "\tapplication-dependent data size: %d bytes\n", length);
 #endif
 
@@ -700,7 +700,7 @@ void RTCPInstance
 	}
 	// Other RTCP packet types that we don't yet handle:
         case RTCP_PT_SDES: {
-#ifdef DEBUG
+#ifdef _DEBUG
 	  // 'Handle' SDES packets only in debugging code, by printing out the 'SDES items':
 	  fprintf(stderr, "SDES\n");
 
@@ -751,14 +751,14 @@ void RTCPInstance
 	  break;
 	}
         case RTCP_PT_RTPFB: {
-#ifdef DEBUG
+#ifdef _DEBUG
 	  fprintf(stderr, "RTPFB(unhandled)\n");
 #endif
 	  subPacketOK = True;
 	  break;
 	}
         case RTCP_PT_PSFB: {
-#ifdef DEBUG
+#ifdef _DEBUG
 	  fprintf(stderr, "PSFB(unhandled)\n");
 	  // Temporary code to show "Receiver Estimated Maximum Bitrate" (REMB) feedback reports:
 	  //#####
@@ -777,42 +777,42 @@ void RTCPInstance
 	  break;
 	}
         case RTCP_PT_XR: {
-#ifdef DEBUG
+#ifdef _DEBUG
 	  fprintf(stderr, "XR(unhandled)\n");
 #endif
 	  subPacketOK = True;
 	  break;
 	}
         case RTCP_PT_AVB: {
-#ifdef DEBUG
+#ifdef _DEBUG
 	  fprintf(stderr, "AVB(unhandled)\n");
 #endif
 	  subPacketOK = True;
 	  break;
 	}
         case RTCP_PT_RSI: {
-#ifdef DEBUG
+#ifdef _DEBUG
 	  fprintf(stderr, "RSI(unhandled)\n");
 #endif
 	  subPacketOK = True;
 	  break;
 	}
         case RTCP_PT_TOKEN: {
-#ifdef DEBUG
+#ifdef _DEBUG
 	  fprintf(stderr, "TOKEN(unhandled)\n");
 #endif
 	  subPacketOK = True;
 	  break;
 	}
         case RTCP_PT_IDMS: {
-#ifdef DEBUG
+#ifdef _DEBUG
 	  fprintf(stderr, "IDMS(unhandled)\n");
 #endif
 	  subPacketOK = True;
 	  break;
 	}
         default: {
-#ifdef DEBUG
+#ifdef _DEBUG
 	  fprintf(stderr, "UNKNOWN TYPE(0x%x)\n", pt);
 #endif
 	  subPacketOK = True;
@@ -823,7 +823,7 @@ void RTCPInstance
 
       // need to check for (& handle) SSRC collision! #####
 
-#ifdef DEBUG
+#ifdef _DEBUG
       fprintf(stderr, "validated RTCP subpacket: rc:%d, pt:%d, bytes remaining:%d, report sender SSRC:0x%08x\n", rc, pt, length, reportSenderSSRC);
 #endif
 
@@ -835,14 +835,14 @@ void RTCPInstance
 	packetOK = True;
 	break;
       } else if (packetSize < 4) {
-#ifdef DEBUG
+#ifdef _DEBUG
 	fprintf(stderr, "extraneous %d bytes at end of RTCP packet!\n", packetSize);
 #endif
 	break;
       }
       rtcpHdr = ntohl(*(u_int32_t*)pkt);
       if ((rtcpHdr & 0xC0000000) != 0x80000000) {
-#ifdef DEBUG
+#ifdef _DEBUG
 	fprintf(stderr, "bad RTCP subpacket: header 0x%08x\n", rtcpHdr);
 #endif
 	break;
@@ -850,12 +850,12 @@ void RTCPInstance
     }
 
     if (!packetOK) {
-#ifdef DEBUG
+#ifdef _DEBUG
       fprintf(stderr, "rejected bad RTCP subpacket: header 0x%08x\n", rtcpHdr);
 #endif
       break;
     } else {
-#ifdef DEBUG
+#ifdef _DEBUG
       fprintf(stderr, "validated entire RTCP packet\n");
 #endif
     }
@@ -898,7 +898,7 @@ void RTCPInstance::onReceive(int typeOfPacket, int totPacketSize, u_int32_t ssrc
 }
 
 void RTCPInstance::sendReport() {
-#ifdef DEBUG
+#ifdef _DEBUG
   fprintf(stderr, "sending REPORT\n");
 #endif
   // Begin by including a SR and/or RR report:
@@ -919,7 +919,7 @@ void RTCPInstance::sendReport() {
 }
 
 void RTCPInstance::sendBYE(char const* reason) {
-#ifdef DEBUG
+#ifdef _DEBUG
   if (reason != NULL) {
     fprintf(stderr, "sending BYE (reason:%s)\n", reason);
   } else {
@@ -934,7 +934,7 @@ void RTCPInstance::sendBYE(char const* reason) {
 }
 
 void RTCPInstance::sendBuiltPacket() {
-#ifdef DEBUG
+#ifdef _DEBUG
   fprintf(stderr, "sending RTCP packet\n");
   unsigned char* p = fOutBuf->packet();
   for (unsigned i = 0; i < fOutBuf->curPacketSize(); ++i) {
@@ -1222,7 +1222,7 @@ void RTCPInstance::schedule(double nextTime) {
 
   double secondsToDelay = nextTime - dTimeNow();
   if (secondsToDelay < 0) secondsToDelay = 0;
-#ifdef DEBUG
+#ifdef _DEBUG
   fprintf(stderr, "schedule(%f->%f)\n", secondsToDelay, nextTime);
 #endif
   int64_t usToGo = (int64_t)(secondsToDelay * 1000000);

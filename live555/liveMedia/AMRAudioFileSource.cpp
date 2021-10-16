@@ -69,7 +69,7 @@ AMRAudioFileSource::createNew(UsageEnvironment& env, char const* fileName) {
     // If we get here, the magic number was OK:
     magicNumberOK = True;
 
-#ifdef DEBUG
+#ifdef _DEBUG
     fprintf(stderr, "isWideband: %d, numChannels: %d\n",
 	    isWideband, numChannels);
 #endif
@@ -126,20 +126,20 @@ void AMRAudioFileSource::doGetNextFrame() {
       return;
     }
     if ((fLastFrameHeader&0x83) != 0) {
-#ifdef DEBUG
+#ifdef _DEBUG
       fprintf(stderr, "Invalid frame header 0x%02x (padding bits (0x83) are not zero)\n", fLastFrameHeader);
 #endif
     } else {
       unsigned char ft = (fLastFrameHeader&0x78)>>3;
       fFrameSize = fIsWideband ? frameSizeWideband[ft] : frameSize[ft];
       if (fFrameSize == FT_INVALID) {
-#ifdef DEBUG
+#ifdef _DEBUG
 	fprintf(stderr, "Invalid FT field %d (from frame header 0x%02x)\n",
 		ft, fLastFrameHeader);
 #endif
       } else {
 	// The frame header is OK
-#ifdef DEBUG
+#ifdef _DEBUG
 	fprintf(stderr, "Valid frame header 0x%02x -> ft %d -> frame size %d\n", fLastFrameHeader, ft, fFrameSize);
 #endif
 	break;

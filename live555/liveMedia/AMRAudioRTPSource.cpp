@@ -253,7 +253,7 @@ Boolean RawAMRRTPSource
     if (fILP > fILL) return False; // invalid
     ++resultSpecialHeaderSize;
   }
-#ifdef DEBUG
+#ifdef _DEBUG
   fprintf(stderr, "packetSize: %d, ILL: %d, ILP: %d\n", packetSize, fILL, fILP);
 #endif
   fFrameIndex = 0; // initially
@@ -267,14 +267,14 @@ Boolean RawAMRRTPSource
     unsigned char const tocByte = headerStart[resultSpecialHeaderSize++];
     F = (tocByte&0x80) != 0;
     unsigned char const FT = (tocByte&0x78) >> 3;
-#ifdef DEBUG
+#ifdef _DEBUG
     unsigned char Q = (tocByte&0x04)>>2;
     fprintf(stderr, "\tTOC entry: F %d, FT %d, Q %d\n", F, FT, Q);
 #endif
     ++numFramesPresent;
     if (FT != FT_SPEECH_LOST && FT != FT_NO_DATA) ++numNonEmptyFramesPresent;
   } while (F);
-#ifdef DEBUG
+#ifdef _DEBUG
   fprintf(stderr, "TOC contains %d entries (%d non-empty)\n", numFramesPresent, numNonEmptyFramesPresent);
 #endif
 
@@ -293,12 +293,12 @@ Boolean RawAMRRTPSource
     // 'numNonEmptyFramesPresent' CRC bytes will follow.
     // Note: we currently don't check the CRCs for validity #####
     resultSpecialHeaderSize += numNonEmptyFramesPresent;
-#ifdef DEBUG
+#ifdef _DEBUG
     fprintf(stderr, "Ignoring %d following CRC bytes\n", numNonEmptyFramesPresent);
 #endif
     if (resultSpecialHeaderSize > packetSize) return False;
   }
-#ifdef DEBUG
+#ifdef _DEBUG
   fprintf(stderr, "Total special header size: %d\n", resultSpecialHeaderSize);
 #endif
 
@@ -358,7 +358,7 @@ unsigned AMRBufferedPacket::
     fOurSource.envir() << "AMRBufferedPacket::nextEnclosedFrameSize(): invalid FT: " << FT << "\n";
     frameSize = 0; // This probably messes up the rest of this packet, but...
   }
-#ifdef DEBUG
+#ifdef _DEBUG
   fprintf(stderr, "AMRBufferedPacket::nextEnclosedFrameSize(): frame #: %d, FT: %d, isWideband: %d => frameSize: %d (dataSize: %d)\n", tocIndex, FT, fOurSource.isWideband(), frameSize, dataSize);
 #endif
   ++fOurSource.frameIndex();
@@ -534,7 +534,7 @@ void AMRDeinterleavingBuffer
   // First perform a sanity check on the parameters:
   // (This is overkill, as the source should have already done this.)
   if (ILP > fILL || frameIndex == 0) {
-#ifdef DEBUG
+#ifdef _DEBUG
     fprintf(stderr, "AMRDeinterleavingBuffer::deliverIncomingFrame() param sanity check failed (%d,%d,%d,%d)\n", frameSize, fILL, ILP, frameIndex);
 #endif
     source->envir().internalError();
@@ -562,7 +562,7 @@ void AMRDeinterleavingBuffer
   if (!fHaveSeenPackets
       || seqNumLT(fLastPacketSeqNumForGroup, packetSeqNum + frameBlockIndex)) {
     // We've moved to a new interleave group
-#ifdef DEBUG
+#ifdef _DEBUG
     fprintf(stderr, "AMRDeinterleavingBuffer::deliverIncomingFrame(): new interleave group\n");
 #endif
     fHaveSeenPackets = True;
@@ -580,7 +580,7 @@ void AMRDeinterleavingBuffer
   unsigned const binNumber
     = ((ILP + frameBlockIndex*(fILL+1))*fNumChannels + frameWithinFrameBlock)
       % fMaxInterleaveGroupSize; // the % is for sanity
-#ifdef DEBUG
+#ifdef _DEBUG
   fprintf(stderr, "AMRDeinterleavingBuffer::deliverIncomingFrame(): frameIndex %d (%d,%d) put in bank %d, bin %d (%d): size %d, header 0x%02x, presentationTime %lu.%06ld\n", frameIndex, frameBlockIndex, frameWithinFrameBlock, fIncomingBankId, binNumber, fMaxInterleaveGroupSize, frameSize, frameHeader, presentationTime.tv_sec, presentationTime.tv_usec);
 #endif
   FrameDescriptor& inBin = fFrames[fIncomingBankId][binNumber];
@@ -651,7 +651,7 @@ Boolean AMRDeinterleavingBuffer
     resultFrameSize = fromSize;
   }
   memmove(to, fromPtr, resultFrameSize);
-#ifdef DEBUG
+#ifdef _DEBUG
   fprintf(stderr, "AMRDeinterleavingBuffer::retrieveFrame(): from bank %d, bin %d: size %d, header 0x%02x, presentationTime %lu.%06ld\n", fIncomingBankId^1, fNextOutgoingBin, resultFrameSize, resultFrameHeader, resultPresentationTime.tv_sec, resultPresentationTime.tv_usec);
 #endif
 
@@ -687,7 +687,7 @@ static unsigned short const frameBitsFromFTWideband[16] = {
 
 static void unpackBandwidthEfficientData(BufferedPacket* packet,
 					 Boolean isWideband) {
-#ifdef DEBUG
+#ifdef _DEBUG
   fprintf(stderr, "Unpacking 'bandwidth-efficient' payload (%d bytes):\n", packet->dataSize());
   for (unsigned j = 0; j < packet->dataSize(); ++j) {
     fprintf(stderr, "%02x:", (packet->data())[j]);
@@ -722,7 +722,7 @@ static void unpackBandwidthEfficientData(BufferedPacket* packet,
     unsigned short frameSizeBytes = (frameSizeBits+7)/8;
 
     if (frameSizeBits > fromBV.numBitsRemaining()) {
-#ifdef DEBUG
+#ifdef _DEBUG
       fprintf(stderr, "\tWarning: Unpacking frame %d of %d: want %d bits, but only %d are available!\n", i, tocSize, frameSizeBits, fromBV.numBitsRemaining());
 #endif
       break;
@@ -736,7 +736,7 @@ static void unpackBandwidthEfficientData(BufferedPacket* packet,
     toCount += frameSizeBytes;
   }
 
-#ifdef DEBUG
+#ifdef _DEBUG
   if (fromBV.numBitsRemaining() > 7) {
     fprintf(stderr, "\tWarning: %d bits remain unused!\n", fromBV.numBitsRemaining());
   }

@@ -211,7 +211,7 @@ void MatroskaFile::handleEndOfTrackHeaderParsing() {
     delete[] trackChoice;
   }
   
-#ifdef DEBUG
+#ifdef _DEBUG
   if (fChosenVideoTrackNumber > 0) fprintf(stderr, "Chosen video track: #%d\n", fChosenVideoTrackNumber); else fprintf(stderr, "No chosen video track\n");
   if (fChosenAudioTrackNumber > 0) fprintf(stderr, "Chosen audio track: #%d\n", fChosenAudioTrackNumber); else fprintf(stderr, "No chosen audio track\n");
   if (fChosenSubtitleTrackNumber > 0) fprintf(stderr, "Chosen subtitle track: #%d\n", fChosenSubtitleTrackNumber); else fprintf(stderr, "No chosen subtitle track\n");

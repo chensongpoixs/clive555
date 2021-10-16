@@ -73,7 +73,7 @@ private:
   unsigned long fTransportPacketNumber;
 };
 
-#ifdef DEBUG
+#ifdef _DEBUG
 static char const* recordTypeStr[] = {
   "UNPARSED",
   "VSH",
@@ -386,7 +386,7 @@ Boolean MPEG2IFrameIndexFromTransportStream::deliverIndexRecord() {
   }
 
   // Deliver data from the head record:
-#ifdef DEBUG
+#ifdef _DEBUG
   envir() << "delivering: " << *head << "\n";
 #endif
   if (fMaxSize < 11) {
@@ -555,7 +555,7 @@ Boolean MPEG2IFrameIndexFromTransportStream::parseFrame() {
   // There is now a parsed 'frame', from "fParseBufferFrameStart"
   // to "fParseBufferParseEnd". Tag the corresponding index records to note this:
   unsigned frameSize = fParseBufferParseEnd - fParseBufferFrameStart + numInitialBadBytes;
-#ifdef DEBUG
+#ifdef _DEBUG
   envir() << "parsed " << recordTypeStr[curRecordType] << "; length "
 	  << frameSize << "\n";
 #endif
@@ -576,7 +576,7 @@ Boolean MPEG2IFrameIndexFromTransportStream::parseFrame() {
       u_int8_t newOffset = r->startOffset() + frameSize;
       u_int8_t newSize = r->size() - frameSize;
       r->size() = frameSize;
-#ifdef DEBUG
+#ifdef _DEBUG
       envir() << "tagged record (modified): " << *r << "\n";
 #endif
 
@@ -584,11 +584,11 @@ Boolean MPEG2IFrameIndexFromTransportStream::parseFrame() {
 	= new IndexRecord(newOffset, newSize, r->transportPacketNumber(), r->pcr());
       newRecord->addAfter(r);
       if (fTailIndexRecord == r) fTailIndexRecord = newRecord;
-#ifdef DEBUG
+#ifdef _DEBUG
       envir() << "added extra record: " << *newRecord << "\n";
 #endif
     } else {
-#ifdef DEBUG
+#ifdef _DEBUG
       envir() << "tagged record: " << *r << "\n";
 #endif
     }
@@ -627,7 +627,7 @@ Boolean MPEG2IFrameIndexFromTransportStream
 }
 
 void MPEG2IFrameIndexFromTransportStream::compactParseBuffer() {
-#ifdef DEBUG
+#ifdef _DEBUG
   envir() << "Compacting parse buffer: [" << fParseBufferFrameStart
 	  << "," << fParseBufferParseEnd << "," << fParseBufferDataEnd << "]";
 #endif
@@ -636,14 +636,14 @@ void MPEG2IFrameIndexFromTransportStream::compactParseBuffer() {
   fParseBufferDataEnd -= fParseBufferFrameStart;
   fParseBufferParseEnd -= fParseBufferFrameStart;
   fParseBufferFrameStart = 0;
-#ifdef DEBUG
+#ifdef _DEBUG
   envir() << "-> [" << fParseBufferFrameStart
 	  << "," << fParseBufferParseEnd << "," << fParseBufferDataEnd << "]\n";
 #endif
 }
 
 void MPEG2IFrameIndexFromTransportStream::addToTail(IndexRecord* newIndexRecord) {
-#ifdef DEBUG
+#ifdef _DEBUG
   envir() << "adding new: " << *newIndexRecord << "\n";
 #endif
   if (fTailIndexRecord == NULL) {

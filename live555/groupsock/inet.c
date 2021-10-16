@@ -277,7 +277,7 @@ our_initstate(seed, arg_state, n)
 	else
 		state[-1] = MAX_TYPES * (rptr - state) + rand_type;
 	if (n < BREAK_0) {
-#ifdef DEBUG
+#ifdef _DEBUG
 		(void)fprintf(stderr,
 		    "random: not enough state (%d bytes); ignored.\n", n);
 #endif
@@ -353,7 +353,7 @@ our_setstate(arg_state)
 		rand_sep = seps[type];
 		break;
 	default:
-#ifdef DEBUG
+#ifdef _DEBUG
 		(void)fprintf(stderr,
 		    "random: state info corrupted; not changed.\n");
 #endif

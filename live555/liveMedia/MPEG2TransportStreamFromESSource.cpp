@@ -249,7 +249,7 @@ void InputESSourceRecord
     fSCR.remainingBits
       = presentationTime.tv_sec*90000 + (presentationTime.tv_usec*9)/100;
     fSCR.extension = (presentationTime.tv_usec*9)%100;
-#ifdef DEBUG_SCR
+#ifdef _DEBUG_SCR
     fprintf(stderr, "PES header: stream_id 0x%02x, pts: %u.%06u => SCR 0x%x%08x:%03x\n", fStreamId, (unsigned)presentationTime.tv_sec, (unsigned)presentationTime.tv_usec, fSCR.highBit, fSCR.remainingBits, fSCR.extension);
 #endif
   }

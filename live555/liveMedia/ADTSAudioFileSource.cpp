@@ -74,7 +74,7 @@ ADTSAudioFileSource::createNew(UsageEnvironment& env, char const* fileName) {
 #else
     SeekFile64(fid, SEEK_SET,0);
 #endif
-#ifdef DEBUG
+#ifdef _DEBUG
     fprintf(stderr, "Read first frame: profile %d, "
 	    "sampling_frequency_index %d => samplingFrequency %d, "
 	    "channel_configuration %d\n",
@@ -128,7 +128,7 @@ void ADTSAudioFileSource::doGetNextFrame() {
   Boolean protection_absent = headers[1]&0x01;
   u_int16_t frame_length
     = ((headers[3]&0x03)<<11) | (headers[4]<<3) | ((headers[5]&0xE0)>>5);
-#ifdef DEBUG
+#ifdef _DEBUG
   u_int16_t syncword = (headers[0]<<4) | (headers[1]>>4);
   fprintf(stderr, "Read frame: syncword 0x%x, protection_absent %d, frame_length %d\n", syncword, protection_absent, frame_length);
   if (syncword != 0xFFF) fprintf(stderr, "WARNING: Bad syncword!\n");

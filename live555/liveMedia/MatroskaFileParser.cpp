@@ -50,17 +50,17 @@ MatroskaFileParser::~MatroskaFileParser() {
 }
 
 void MatroskaFileParser::seekToTime(double& seekNPT) {
-#ifdef DEBUG
+#ifdef _DEBUG
   fprintf(stderr, "seekToTime(%f)\n", seekNPT);
 #endif
   if (seekNPT <= 0.0) {
-#ifdef DEBUG
+#ifdef _DEBUG
     fprintf(stderr, "\t=> start of file\n");
 #endif
     seekNPT = 0.0;
     seekToFilePosition(0);
   } else if (seekNPT >= fOurFile.fileDuration()) {
-#ifdef DEBUG
+#ifdef _DEBUG
     fprintf(stderr, "\t=> end of file\n");
 #endif
     seekNPT = fOurFile.fileDuration();
@@ -69,13 +69,13 @@ void MatroskaFileParser::seekToTime(double& seekNPT) {
     u_int64_t clusterOffsetInFile;
     unsigned blockNumWithinCluster;
     if (!fOurFile.lookupCuePoint(seekNPT, clusterOffsetInFile, blockNumWithinCluster)) {
-#ifdef DEBUG
+#ifdef _DEBUG
       fprintf(stderr, "\t=> not supported\n");
 #endif
       return; // seeking not supported
     }
 
-#ifdef DEBUG
+#ifdef _DEBUG
     fprintf(stderr, "\t=> seek time %f, file position %llu, block number within cluster %d\n", seekNPT, clusterOffsetInFile, blockNumWithinCluster);
 #endif
     seekToFilePosition(clusterOffsetInFile);
@@ -124,7 +124,7 @@ Boolean MatroskaFileParser::parse() {
 	  if (areDone && fOurFile.fCuesOffset > 0) {
 	    // We've finished parsing the 'Track' information.  There are also 'Cues' in the file, so parse those before finishing:
 	    // Seek to the specified position in the file.  We were already told that the 'Cues' begins there:
-#ifdef DEBUG
+#ifdef _DEBUG
 	    fprintf(stderr, "Seeking to file position %llu (the previously-reported location of 'Cues')\n", fOurFile.fCuesOffset);
 #endif
 	    seekToFilePosition(fOurFile.fCuesOffset);
@@ -140,7 +140,7 @@ Boolean MatroskaFileParser::parse() {
         case LOOKING_FOR_CLUSTER: {
 	  if (fOurFile.fClusterOffset > 0) {
 	    // Optimization: Seek to the specified position in the file.  We were already told that the 'Cluster' begins there:
-#ifdef DEBUG
+#ifdef _DEBUG
 	    fprintf(stderr, "Optimization: Seeking to file position %llu (the previously-reported location of a 'Cluster')\n", fOurFile.fClusterOffset);
 #endif
 	    seekToFilePosition(fOurFile.fClusterOffset);
@@ -170,7 +170,7 @@ Boolean MatroskaFileParser::parse() {
 
     return True;
   } catch (int /*e*/) {
-#ifdef DEBUG
+#ifdef _DEBUG
     fprintf(stderr, "MatroskaFileParser::parse() EXCEPTION (This is normal behavior - *not* an error)\n");
 #endif
     return False;  // the parsing got interrupted
@@ -178,7 +178,7 @@ Boolean MatroskaFileParser::parse() {
 }
 
 Boolean MatroskaFileParser::parseStartOfFile() {
-#ifdef DEBUG
+#ifdef _DEBUG
   fprintf(stderr, "parsing start of file\n");
 #endif
   EBMLId id;
@@ -189,7 +189,7 @@ Boolean MatroskaFileParser::parseStartOfFile() {
     fOurFile.envir() << "ERROR: File does not begin with an EBML header\n";
     return True; // We're done with the file, because it's not valid
   }
-#ifdef DEBUG
+#ifdef _DEBUG
     fprintf(stderr, "MatroskaFileParser::parseStartOfFile(): Parsed id 0x%s (%s), size: %lld\n", id.hexString(), id.stringName(), size.val());
 #endif
 
@@ -200,7 +200,7 @@ Boolean MatroskaFileParser::parseStartOfFile() {
 }
 
 void MatroskaFileParser::lookForNextTrack() {
-#ifdef DEBUG
+#ifdef _DEBUG
   fprintf(stderr, "looking for Track\n");
 #endif
   EBMLId id;
@@ -209,7 +209,7 @@ void MatroskaFileParser::lookForNextTrack() {
   // Read and skip over (or enter) each Matroska header, until we get to a 'Track'.
   while (fCurrentParseState == LOOKING_FOR_TRACKS) {
     while (!parseEBMLIdAndSize(id, size)) {}
-#ifdef DEBUG
+#ifdef _DEBUG
     fprintf(stderr, "MatroskaFileParser::lookForNextTrack(): Parsed id 0x%s (%s), size: %lld\n", id.hexString(), id.stringName(), size.val());
 #endif
     switch (id.val()) {
@@ -226,7 +226,7 @@ void MatroskaFileParser::lookForNextTrack() {
       }
       case MATROSKA_ID_SEEK_ID: { // 'Seek ID' header: get this value
 	if (parseEBMLNumber(fLastSeekId)) {
-#ifdef DEBUG
+#ifdef _DEBUG
 	  fprintf(stderr, "\tSeek ID 0x%s:\t%s\n", fLastSeekId.hexString(), fLastSeekId.stringName());
 #endif
 	}
@@ -236,7 +236,7 @@ void MatroskaFileParser::lookForNextTrack() {
 	u_int64_t seekPosition;
 	if (parseEBMLVal_unsigned64(size, seekPosition)) {
 	  u_int64_t offsetInFile = fOurFile.fSegmentDataOffset + seekPosition;
-#ifdef DEBUG
+#ifdef _DEBUG
 	  fprintf(stderr, "\tSeek Position %llu (=> offset within the file: %llu (0x%llx))\n", seekPosition, offsetInFile, offsetInFile);
 #endif
 	  // The only 'Seek Position's that we care about are for 'Cluster' and 'Cues':
@@ -255,7 +255,7 @@ void MatroskaFileParser::lookForNextTrack() {
         unsigned timecodeScale;
 	if (parseEBMLVal_unsigned(size, timecodeScale) && timecodeScale > 0) {
 	  fOurFile.fTimecodeScale = timecodeScale;
-#ifdef DEBUG
+#ifdef _DEBUG
 	  fprintf(stderr, "\tTimecode Scale %u ns (=> Segment Duration == %f seconds)\n",
 		  fOurFile.timecodeScale(), fOurFile.segmentDuration()*(fOurFile.fTimecodeScale/1000000000.0f));
 #endif
@@ -264,18 +264,18 @@ void MatroskaFileParser::lookForNextTrack() {
       }
       case MATROSKA_ID_DURATION: { // 'Segment Duration' header: get this value
 	if (parseEBMLVal_float(size, fOurFile.fSegmentDuration)) {
-#ifdef DEBUG
+#ifdef _DEBUG
 	  fprintf(stderr, "\tSegment Duration %f (== %f seconds)\n",
 		  fOurFile.segmentDuration(), fOurFile.segmentDuration()*(fOurFile.fTimecodeScale/1000000000.0f));
 #endif
 	}
 	break;
       }
-#ifdef DEBUG
+#ifdef _DEBUG
       case MATROSKA_ID_TITLE: { // 'Segment Title': display this value
 	char* title;
 	if (parseEBMLVal_string(size, title)) {
-#ifdef DEBUG
+#ifdef _DEBUG
 	  fprintf(stderr, "\tTitle: %s\n", title);
 #endif
 	  delete[] title;
@@ -298,7 +298,7 @@ void MatroskaFileParser::lookForNextTrack() {
 }
 
 Boolean MatroskaFileParser::parseTrack() {
-#ifdef DEBUG
+#ifdef _DEBUG
   fprintf(stderr, "parsing Track\n");
 #endif
   // Read and process each Matroska header, until we get to the end of the Track:
@@ -307,7 +307,7 @@ Boolean MatroskaFileParser::parseTrack() {
   EBMLDataSize size;
   while (fCurOffsetInFile < fLimitOffsetInFile) {
     while (!parseEBMLIdAndSize(id, size)) {}
-#ifdef DEBUG
+#ifdef _DEBUG
     if (id == MATROSKA_ID_TRACK_ENTRY) fprintf(stderr, "\n"); // makes debugging output easier to read
     fprintf(stderr, "MatroskaFileParser::parseTrack(): Parsed id 0x%s (%s), size: %lld\n", id.hexString(), id.stringName(), size.val());
 #endif
@@ -321,7 +321,7 @@ Boolean MatroskaFileParser::parseTrack() {
       case MATROSKA_ID_TRACK_NUMBER: {
 	unsigned trackNumber;
 	if (parseEBMLVal_unsigned(size, trackNumber)) {
-#ifdef DEBUG
+#ifdef _DEBUG
 	  fprintf(stderr, "\tTrack Number %d\n", trackNumber);
 #endif
 	  if (track != NULL && trackNumber != 0) {
@@ -338,7 +338,7 @@ Boolean MatroskaFileParser::parseTrack() {
 	  track->trackType
 	    = trackType == 1 ? MATROSKA_TRACK_TYPE_VIDEO : trackType == 2 ? MATROSKA_TRACK_TYPE_AUDIO
 	    : trackType == 0x11 ? MATROSKA_TRACK_TYPE_SUBTITLE : MATROSKA_TRACK_TYPE_OTHER;
-#ifdef DEBUG
+#ifdef _DEBUG
 	  fprintf(stderr, "\tTrack Type 0x%02x (%s)\n", trackType,
 		  track->trackType == MATROSKA_TRACK_TYPE_VIDEO ? "video" :
 		  track->trackType == MATROSKA_TRACK_TYPE_AUDIO ? "audio" :
@@ -351,7 +351,7 @@ Boolean MatroskaFileParser::parseTrack() {
       case MATROSKA_ID_FLAG_ENABLED: {
 	unsigned flagEnabled;
 	if (parseEBMLVal_unsigned(size, flagEnabled)) {
-#ifdef DEBUG
+#ifdef _DEBUG
 	  fprintf(stderr, "\tTrack is Enabled: %d\n", flagEnabled);
 #endif
 	  if (track != NULL) track->isEnabled = flagEnabled != 0;
@@ -361,7 +361,7 @@ Boolean MatroskaFileParser::parseTrack() {
       case MATROSKA_ID_FLAG_DEFAULT: {
 	unsigned flagDefault;
 	if (parseEBMLVal_unsigned(size, flagDefault)) {
-#ifdef DEBUG
+#ifdef _DEBUG
 	  fprintf(stderr, "\tTrack is Default: %d\n", flagDefault);
 #endif
 	  if (track != NULL) track->isDefault = flagDefault != 0;
@@ -371,7 +371,7 @@ Boolean MatroskaFileParser::parseTrack() {
       case MATROSKA_ID_FLAG_FORCED: {
 	unsigned flagForced;
 	if (parseEBMLVal_unsigned(size, flagForced)) {
-#ifdef DEBUG
+#ifdef _DEBUG
 	  fprintf(stderr, "\tTrack is Forced: %d\n", flagForced);
 #endif
 	  if (track != NULL) track->isForced = flagForced != 0;
@@ -381,7 +381,7 @@ Boolean MatroskaFileParser::parseTrack() {
       case MATROSKA_ID_DEFAULT_DURATION: {
 	unsigned defaultDuration;
 	if (parseEBMLVal_unsigned(size, defaultDuration)) {
-#ifdef DEBUG
+#ifdef _DEBUG
 	  fprintf(stderr, "\tDefault duration %f ms\n", defaultDuration/1000000.0);
 #endif
 	  if (track != NULL) track->defaultDuration = defaultDuration;
@@ -391,7 +391,7 @@ Boolean MatroskaFileParser::parseTrack() {
       case MATROSKA_ID_MAX_BLOCK_ADDITION_ID: {
 	unsigned maxBlockAdditionID;
 	if (parseEBMLVal_unsigned(size, maxBlockAdditionID)) {
-#ifdef DEBUG
+#ifdef _DEBUG
 	  fprintf(stderr, "\tMax Block Addition ID: %u\n", maxBlockAdditionID);
 #endif
 	}
@@ -400,7 +400,7 @@ Boolean MatroskaFileParser::parseTrack() {
       case MATROSKA_ID_NAME: {
 	char* name;
 	if (parseEBMLVal_string(size, name)) {
-#ifdef DEBUG
+#ifdef _DEBUG
 	  fprintf(stderr, "\tName: %s\n", name);
 #endif
 	  if (track != NULL) {
@@ -414,7 +414,7 @@ Boolean MatroskaFileParser::parseTrack() {
       case MATROSKA_ID_LANGUAGE: {
 	char* language;
 	if (parseEBMLVal_string(size, language)) {
-#ifdef DEBUG
+#ifdef _DEBUG
 	  fprintf(stderr, "\tLanguage: %s\n", language);
 #endif
 	  if (track != NULL) {
@@ -428,7 +428,7 @@ Boolean MatroskaFileParser::parseTrack() {
       case MATROSKA_ID_CODEC: {
 	char* codecID;
 	if (parseEBMLVal_string(size, codecID)) {
-#ifdef DEBUG
+#ifdef _DEBUG
 	  fprintf(stderr, "\tCodec ID: %s\n", codecID);
 #endif
 	  if (track != NULL) {
@@ -476,7 +476,7 @@ Boolean MatroskaFileParser::parseTrack() {
 	unsigned codecPrivateSize;
 	if (parseEBMLVal_binary(size, codecPrivate)) {
 	  codecPrivateSize = (unsigned)size.val();
-#ifdef DEBUG
+#ifdef _DEBUG
 	  fprintf(stderr, "\tCodec Private: ");
 	  for (unsigned i = 0; i < codecPrivateSize; ++i) fprintf(stderr, "%02x:", codecPrivate[i]);
 	  fprintf(stderr, "\n");
@@ -526,7 +526,7 @@ Boolean MatroskaFileParser::parseTrack() {
       case MATROSKA_ID_PIXEL_WIDTH: {
 	unsigned pixelWidth;
 	if (parseEBMLVal_unsigned(size, pixelWidth)) {
-#ifdef DEBUG
+#ifdef _DEBUG
 	  fprintf(stderr, "\tPixel Width %d\n", pixelWidth);
 #endif
       if (track != NULL) track->pixelWidth = pixelWidth;
@@ -536,7 +536,7 @@ Boolean MatroskaFileParser::parseTrack() {
       case MATROSKA_ID_PIXEL_HEIGHT: {
 	unsigned pixelHeight;
 	if (parseEBMLVal_unsigned(size, pixelHeight)) {
-#ifdef DEBUG
+#ifdef _DEBUG
 	  fprintf(stderr, "\tPixel Height %d\n", pixelHeight);
 #endif
       if (track != NULL) track->pixelHeight = pixelHeight;
@@ -546,7 +546,7 @@ Boolean MatroskaFileParser::parseTrack() {
       case MATROSKA_ID_DISPLAY_WIDTH: {
 	unsigned displayWidth;
 	if (parseEBMLVal_unsigned(size, displayWidth)) {
-#ifdef DEBUG
+#ifdef _DEBUG
 	  fprintf(stderr, "\tDisplay Width %d\n", displayWidth);
 #endif
 	}
@@ -555,7 +555,7 @@ Boolean MatroskaFileParser::parseTrack() {
       case MATROSKA_ID_DISPLAY_HEIGHT: {
 	unsigned displayHeight;
 	if (parseEBMLVal_unsigned(size, displayHeight)) {
-#ifdef DEBUG
+#ifdef _DEBUG
 	  fprintf(stderr, "\tDisplay Height %d\n", displayHeight);
 #endif
 	}
@@ -564,7 +564,7 @@ Boolean MatroskaFileParser::parseTrack() {
       case MATROSKA_ID_DISPLAY_UNIT: {
 	unsigned displayUnit;
 	if (parseEBMLVal_unsigned(size, displayUnit)) {
-#ifdef DEBUG
+#ifdef _DEBUG
 	  fprintf(stderr, "\tDisplay Unit %d\n", displayUnit);
 #endif
 	}
@@ -578,7 +578,7 @@ Boolean MatroskaFileParser::parseTrack() {
 	if (parseEBMLVal_float(size, samplingFrequency)) {
 	  if (track != NULL) {
 	    track->samplingFrequency = (unsigned)samplingFrequency;
-#ifdef DEBUG
+#ifdef _DEBUG
 	    fprintf(stderr, "\tSampling frequency %f (->%d)\n", samplingFrequency, track->samplingFrequency);
 #endif
 	  }
@@ -588,7 +588,7 @@ Boolean MatroskaFileParser::parseTrack() {
       case MATROSKA_ID_OUTPUT_SAMPLING_FREQUENCY: {
 	float outputSamplingFrequency;
 	if (parseEBMLVal_float(size, outputSamplingFrequency)) {
-#ifdef DEBUG
+#ifdef _DEBUG
 	  fprintf(stderr, "\tOutput sampling frequency %f\n", outputSamplingFrequency);
 #endif
 	}
@@ -597,7 +597,7 @@ Boolean MatroskaFileParser::parseTrack() {
       case MATROSKA_ID_CHANNELS: {
 	unsigned numChannels;
 	if (parseEBMLVal_unsigned(size, numChannels)) {
-#ifdef DEBUG
+#ifdef _DEBUG
 	  fprintf(stderr, "\tChannels %d\n", numChannels);
 #endif
 	  if (track != NULL) track->numChannels = numChannels;
@@ -607,7 +607,7 @@ Boolean MatroskaFileParser::parseTrack() {
       case MATROSKA_ID_BIT_DEPTH: {
 	unsigned bitDepth;
 	if (parseEBMLVal_unsigned(size, bitDepth)) {
-#ifdef DEBUG
+#ifdef _DEBUG
 	  fprintf(stderr, "\tBit Depth %d\n", bitDepth);
 #endif
 	  if (track != NULL) track->bitDepth = bitDepth;
@@ -627,7 +627,7 @@ Boolean MatroskaFileParser::parseTrack() {
       case MATROSKA_ID_CONTENT_COMP_ALGO: {
 	unsigned contentCompAlgo;
 	if (parseEBMLVal_unsigned(size, contentCompAlgo)) {
-#ifdef DEBUG
+#ifdef _DEBUG
 	  fprintf(stderr, "\tContent Compression Algorithm %d (%s)\n", contentCompAlgo,
 		  contentCompAlgo == 0 ? "zlib" : contentCompAlgo == 3 ? "Header Stripping" : "<unknown>");
 #endif
@@ -641,7 +641,7 @@ Boolean MatroskaFileParser::parseTrack() {
 	unsigned headerStrippedBytesSize;
 	if (parseEBMLVal_binary(size, headerStrippedBytes)) {
 	  headerStrippedBytesSize = (unsigned)size.val();
-#ifdef DEBUG
+#ifdef _DEBUG
 	  fprintf(stderr, "\tHeader Stripped Bytes: ");
 	  for (unsigned i = 0; i < headerStrippedBytesSize; ++i) fprintf(stderr, "%02x:", headerStrippedBytes[i]);
 	  fprintf(stderr, "\n");
@@ -665,7 +665,7 @@ Boolean MatroskaFileParser::parseTrack() {
 	unsigned colourSpaceSize;
 	if (parseEBMLVal_binary(size, colourSpace)) {
 	  colourSpaceSize = (unsigned)size.val();
-#ifdef DEBUG
+#ifdef _DEBUG
 	  fprintf(stderr, "\tColor space : %02x %02x %02x %02x\n", colourSpace[0], colourSpace[1], colourSpace[2], colourSpace[3]);
 #endif
       if ((track != NULL) && (colourSpaceSize == 4)) {
@@ -697,7 +697,7 @@ Boolean MatroskaFileParser::parseTrack() {
     case MATROSKA_ID_PRIMARIES: {
         unsigned primaries;
         if (parseEBMLVal_unsigned(size, primaries)) {
-#ifdef DEBUG
+#ifdef _DEBUG
           fprintf(stderr, "\tPrimaries %u\n", primaries);
 #endif
         if (track != NULL) {
@@ -716,7 +716,7 @@ Boolean MatroskaFileParser::parseTrack() {
                   case 8: //FILM
                   case 9: //ITU-R BT.2020
                   default:
-#ifdef DEBUG
+#ifdef _DEBUG
                      fprintf(stderr, "\tUnsupported color primaries %u\n", primaries);
 #endif
                     break;
@@ -738,7 +738,7 @@ Boolean MatroskaFileParser::parseTrack() {
 }
 
 void MatroskaFileParser::lookForNextBlock() {
-#ifdef DEBUG
+#ifdef _DEBUG
   fprintf(stderr, "looking for Block\n");
 #endif
   // Read and skip over each Matroska header, until we get to a 'Cluster':
@@ -746,7 +746,7 @@ void MatroskaFileParser::lookForNextBlock() {
   EBMLDataSize size;
   while (fCurrentParseState == LOOKING_FOR_BLOCK) {
     while (!parseEBMLIdAndSize(id, size)) {}
-#ifdef DEBUG
+#ifdef _DEBUG
     fprintf(stderr, "MatroskaFileParser::lookForNextBlock(): Parsed id 0x%s (%s), size: %lld\n", id.hexString(), id.stringName(), size.val());
 #endif
     switch (id.val()) {
@@ -760,7 +760,7 @@ void MatroskaFileParser::lookForNextBlock() {
 	unsigned timecode;
 	if (parseEBMLVal_unsigned(size, timecode)) {
 	  fClusterTimecode = timecode;
-#ifdef DEBUG
+#ifdef _DEBUG
 	  fprintf(stderr, "\tCluster timecode: %d (== %f seconds)\n", fClusterTimecode, fClusterTimecode*(fOurFile.fTimecodeScale/1000000000.0));
 #endif
 	}
@@ -778,14 +778,14 @@ void MatroskaFileParser::lookForNextBlock() {
       case MATROSKA_ID_BLOCK_DURATION: { // 'Block Duration' header: get this value (but we currently don't do anything with it)
 	unsigned blockDuration;
 	if (parseEBMLVal_unsigned(size, blockDuration)) {
-#ifdef DEBUG
+#ifdef _DEBUG
 	  fprintf(stderr, "\tblock duration: %d (== %f ms)\n", blockDuration, (float)(blockDuration*fOurFile.fTimecodeScale/1000000.0));
 #endif
 	}
 	break;
       }
       // Attachments are parsed only if we're in DEBUG mode (otherwise we just skip over them):
-#ifdef DEBUG
+#ifdef _DEBUG
       case MATROSKA_ID_ATTACHMENTS: { // 'Attachments': enter this
 	break;
       }
@@ -795,7 +795,7 @@ void MatroskaFileParser::lookForNextBlock() {
       case MATROSKA_ID_FILE_DESCRIPTION: { // 'File Description': get this value
 	char* fileDescription;
 	if (parseEBMLVal_string(size, fileDescription)) {
-#ifdef DEBUG
+#ifdef _DEBUG
 	  fprintf(stderr, "\tFile Description: %s\n", fileDescription);
 #endif
 	  delete[] fileDescription;
@@ -805,7 +805,7 @@ void MatroskaFileParser::lookForNextBlock() {
       case MATROSKA_ID_FILE_NAME: { // 'File Name': get this value
 	char* fileName;
 	if (parseEBMLVal_string(size, fileName)) {
-#ifdef DEBUG
+#ifdef _DEBUG
 	  fprintf(stderr, "\tFile Name: %s\n", fileName);
 #endif
 	  delete[] fileName;
@@ -815,7 +815,7 @@ void MatroskaFileParser::lookForNextBlock() {
       case MATROSKA_ID_FILE_MIME_TYPE: { // 'File MIME Type': get this value
 	char* fileMIMEType;
 	if (parseEBMLVal_string(size, fileMIMEType)) {
-#ifdef DEBUG
+#ifdef _DEBUG
 	  fprintf(stderr, "\tFile MIME Type: %s\n", fileMIMEType);
 #endif
 	  delete[] fileMIMEType;
@@ -825,7 +825,7 @@ void MatroskaFileParser::lookForNextBlock() {
       case MATROSKA_ID_FILE_UID: { // 'File UID': get this value
 	unsigned fileUID;
 	if (parseEBMLVal_unsigned(size, fileUID)) {
-#ifdef DEBUG
+#ifdef _DEBUG
 	  fprintf(stderr, "\tFile UID: 0x%x\n", fileUID);
 #endif
 	}
@@ -857,7 +857,7 @@ Boolean MatroskaFileParser::parseCues() {
 
   while (fCurOffsetInFile < fLimitOffsetInFile) {
     while (!parseEBMLIdAndSize(id, size)) {}
-#ifdef DEBUG_CUES
+#ifdef _DEBUG_CUES
     if (id == MATROSKA_ID_CUE_POINT) fprintf(stderr, "\n"); // makes debugging output easier to read
     fprintf(stderr, "MatroskaFileParser::parseCues(): Parsed id 0x%s (%s), size: %lld\n", id.hexString(), id.stringName(), size.val());
 #endif
@@ -869,7 +869,7 @@ Boolean MatroskaFileParser::parseCues() {
 	unsigned cueTime;
 	if (parseEBMLVal_unsigned(size, cueTime)) {
 	  currentCueTime = cueTime*(fOurFile.fTimecodeScale/1000000000.0);
-#ifdef DEBUG_CUES
+#ifdef _DEBUG_CUES
 	  fprintf(stderr, "\tCue Time %d (== %f seconds)\n", cueTime, currentCueTime);
 #endif
 	}
@@ -881,7 +881,7 @@ Boolean MatroskaFileParser::parseCues() {
       case MATROSKA_ID_CUE_TRACK: { // 'Cue Track' header: get this value (but only for debugging; we don't do anything with it)
 	unsigned cueTrack;
 	if (parseEBMLVal_unsigned(size, cueTrack)) {
-#ifdef DEBUG_CUES
+#ifdef _DEBUG_CUES
 	  fprintf(stderr, "\tCue Track %d\n", cueTrack);
 #endif
 	}
@@ -891,7 +891,7 @@ Boolean MatroskaFileParser::parseCues() {
 	u_int64_t cueClusterPosition;
 	if (parseEBMLVal_unsigned64(size, cueClusterPosition)) {
 	  currentClusterOffsetInFile = fOurFile.fSegmentDataOffset + cueClusterPosition;
-#ifdef DEBUG_CUES
+#ifdef _DEBUG_CUES
 	  fprintf(stderr, "\tCue Cluster Position %llu (=> offset within the file: %llu (0x%llx))\n", cueClusterPosition, currentClusterOffsetInFile, currentClusterOffsetInFile);
 #endif
 	  // Record this cue point:
@@ -902,7 +902,7 @@ Boolean MatroskaFileParser::parseCues() {
       case MATROSKA_ID_CUE_BLOCK_NUMBER: { // 'Cue Block Number' header: get this value
 	unsigned cueBlockNumber;
 	if (parseEBMLVal_unsigned(size, cueBlockNumber) && cueBlockNumber != 0) {
-#ifdef DEBUG_CUES
+#ifdef _DEBUG_CUES
 	  fprintf(stderr, "\tCue Block Number %d\n", cueBlockNumber);
 #endif
 	  // Record this cue point (overwriting any existing entry for this cue time):
@@ -922,7 +922,7 @@ Boolean MatroskaFileParser::parseCues() {
 #if defined(DEBUG) || defined(DEBUG_CUES)
   fprintf(stderr, "done parsing Cues\n");
 #endif
-#ifdef DEBUG_CUES
+#ifdef _DEBUG_CUES
   fprintf(stderr, "Cue Point tree: ");
   fOurFile.printCuePoints(stderr);
   fprintf(stderr, "\n");
@@ -933,7 +933,7 @@ Boolean MatroskaFileParser::parseCues() {
 typedef enum { NoLacing, XiphLacing, FixedSizeLacing, EBMLLacing } MatroskaLacingType;
 
 void MatroskaFileParser::parseBlock() {
-#ifdef DEBUG
+#ifdef _DEBUG
   fprintf(stderr, "parsing SimpleBlock or Block\n");
 #endif
   do {
@@ -950,7 +950,7 @@ void MatroskaFileParser::parseBlock() {
       if (headerBytesSeen < fBlockSize) {
 	skipBytes(fBlockSize - headerBytesSeen);
       }
-#ifdef DEBUG
+#ifdef _DEBUG
       fprintf(stderr, "\tSkipped block for unused track number %d\n", fBlockTrackNumber);
 #endif
       fCurrentParseState = LOOKING_FOR_BLOCK;
@@ -968,7 +968,7 @@ void MatroskaFileParser::parseBlock() {
     u_int8_t c = get1Byte();
     c &= 0x6; // we're interested in bits 5-6 only
     MatroskaLacingType lacingType = (c==0x0)?NoLacing : (c==0x02)?XiphLacing : (c==0x04)?FixedSizeLacing : EBMLLacing;
-#ifdef DEBUG
+#ifdef _DEBUG
     fprintf(stderr, "\ttrack number %d, timecode %d (=> %f seconds), %s lacing\n", fBlockTrackNumber, fBlockTimecode, (fClusterTimecode+fBlockTimecode)*(fOurFile.fTimecodeScale/1000000000.0), (lacingType==NoLacing)?"no" : (lacingType==XiphLacing)?"Xiph" : (lacingType==FixedSizeLacing)?"fixed-size" : "EBML");
 #endif
 
@@ -1042,7 +1042,7 @@ void MatroskaFileParser::parseBlock() {
     if (track->headerStrippedBytesSize != 0) {
       for (unsigned i = 0; i < fNumFramesInBlock; ++i) fFrameSizesWithinBlock[i] += track->headerStrippedBytesSize;
     }
-#ifdef DEBUG
+#ifdef _DEBUG
     fprintf(stderr, "\tThis block contains %d frame(s); size(s):", fNumFramesInBlock);
     unsigned frameSizesTotal = 0;
     for (unsigned i = 0; i < fNumFramesInBlock; ++i) {
@@ -1060,14 +1060,14 @@ void MatroskaFileParser::parseBlock() {
   } while (0);
 
   // An error occurred.  Try to recover:
-#ifdef DEBUG
+#ifdef _DEBUG
   fprintf(stderr, "parseBlock(): Error parsing data; trying to recover...\n");
 #endif
   fCurrentParseState = LOOKING_FOR_BLOCK;
 }
 
 Boolean MatroskaFileParser::deliverFrameWithinBlock() {
-#ifdef DEBUG
+#ifdef _DEBUG
   fprintf(stderr, "delivering frame within SimpleBlock or Block\n");
 #endif
   do {
@@ -1080,7 +1080,7 @@ Boolean MatroskaFileParser::deliverFrameWithinBlock() {
       // Someone has been reading this stream, but isn't right now.
       // We can't deliver this frame until he asks for it, so punt for now.
       // The next time he asks for a frame, he'll get it.
-#ifdef DEBUG
+#ifdef _DEBUG
       fprintf(stderr, "\tdeferring delivery of frame #%d (%d bytes)", fNextFrameNumberToDeliver, fFrameSizesWithinBlock[fNextFrameNumberToDeliver]);
       if (track->haveSubframes()) fprintf(stderr, "[offset %d]", fCurOffsetWithinFrame);
       fprintf(stderr, "\n");
@@ -1193,7 +1193,7 @@ Boolean MatroskaFileParser::deliverFrameWithinBlock() {
     // Next, deliver (and/or skip) bytes from the input file:
     if (specialFrameSource != NULL) {
       memmove(demuxedTrack->to(), specialFrameSource, demuxedTrack->frameSize());
-#ifdef DEBUG
+#ifdef _DEBUG
       fprintf(stderr, "\tdelivered special frame: %d bytes", demuxedTrack->frameSize());
       if (demuxedTrack->numTruncatedBytes() > 0) fprintf(stderr, " (%d bytes truncated)", demuxedTrack->numTruncatedBytes());
       fprintf(stderr, " @%u.%06u (%.06f from start); duration %u us\n", demuxedTrack->presentationTime().tv_sec, demuxedTrack->presentationTime().tv_usec, demuxedTrack->presentationTime().tv_sec+demuxedTrack->presentationTime().tv_usec/1000000.0-fPresentationTimeOffset, demuxedTrack->durationInMicroseconds());
@@ -1208,7 +1208,7 @@ Boolean MatroskaFileParser::deliverFrameWithinBlock() {
   } while (0);
 
   // An error occurred.  Try to recover:
-#ifdef DEBUG
+#ifdef _DEBUG
   fprintf(stderr, "deliverFrameWithinBlock(): Error parsing data; trying to recover...\n");
 #endif
   fCurrentParseState = LOOKING_FOR_BLOCK;
@@ -1241,7 +1241,7 @@ void MatroskaFileParser::deliverFrameBytes() {
       fCurOffsetWithinFrame += numBytesToSkip;
       setParseState();
     }
-#ifdef DEBUG
+#ifdef _DEBUG
     fprintf(stderr, "\tdelivered frame #%d: %d bytes", fNextFrameNumberToDeliver, demuxedTrack->frameSize());
     if (track->haveSubframes()) fprintf(stderr, "[offset %d]", fCurOffsetWithinFrame - track->subframeSizeSize - demuxedTrack->frameSize() - demuxedTrack->numTruncatedBytes());
     if (demuxedTrack->numTruncatedBytes() > 0) fprintf(stderr, " (%d bytes truncated)", demuxedTrack->numTruncatedBytes());
@@ -1267,7 +1267,7 @@ void MatroskaFileParser::deliverFrameBytes() {
   } while (0);
 
   // An error occurred.  Try to recover:
-#ifdef DEBUG
+#ifdef _DEBUG
   fprintf(stderr, "deliverFrameBytes(): Error parsing data; trying to recover...\n");
 #endif
   fCurrentParseState = LOOKING_FOR_BLOCK;
@@ -1442,7 +1442,7 @@ Boolean MatroskaFileParser::parseEBMLVal_binary(EBMLDataSize& size, u_int8_t*& r
 
 void MatroskaFileParser::skipHeader(EBMLDataSize const& size) {
   u_int64_t sv = (unsigned)size.val();
-#ifdef DEBUG
+#ifdef _DEBUG
   fprintf(stderr, "\tskipping %llu bytes\n", sv);
 #endif
 
@@ -1461,7 +1461,7 @@ void MatroskaFileParser::skipRemainingHeaderBytes(Boolean isContinuation) {
       = fNumHeaderBytesToSkip < maxBytesToSkip ? (unsigned)fNumHeaderBytesToSkip : maxBytesToSkip;
     setParseState();
     skipBytes(numBytesToSkipNow);
-#ifdef DEBUG
+#ifdef _DEBUG
     if (isContinuation || numBytesToSkipNow < fNumHeaderBytesToSkip) {
       fprintf(stderr, "\t\t(skipped %u bytes; %llu bytes remaining)\n",
 	      numBytesToSkipNow, fNumHeaderBytesToSkip - numBytesToSkipNow);

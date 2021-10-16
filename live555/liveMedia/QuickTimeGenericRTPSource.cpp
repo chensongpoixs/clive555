@@ -91,20 +91,20 @@ Boolean QuickTimeGenericRTPSource
   unsigned char VER = (headerStart[0]&0xF0)>>4;
   if (VER > 1) return False; // unknown header version
   qtState.PCK = (headerStart[0]&0x0C)>>2;
-#ifdef DEBUG
+#ifdef _DEBUG
   Boolean S = (headerStart[0]&0x02) != 0;
 #endif
   Boolean Q = (headerStart[0]&0x01) != 0;
 
   Boolean L = (headerStart[1]&0x80) != 0;
 
-#ifdef DEBUG
+#ifdef _DEBUG
   Boolean D = (headerStart[2]&0x80) != 0;
   unsigned short payloadId = ((headerStart[2]&0x7F)<<8)|headerStart[3];
 #endif
   headerStart += 4;
 
-#ifdef DEBUG
+#ifdef _DEBUG
   fprintf(stderr, "PCK: %d, S: %d, Q: %d, L: %d, D: %d, payloadId: %d\n", qtState.PCK, S, Q, L, D, payloadId);
 #endif
 
@@ -112,7 +112,7 @@ Boolean QuickTimeGenericRTPSource
     expectedHeaderSize += 4;
     if (packetSize < expectedHeaderSize) return False;
 
-#ifdef DEBUG
+#ifdef _DEBUG
     Boolean K = (headerStart[0]&0x80) != 0;
     Boolean F = (headerStart[0]&0x40) != 0;
     Boolean A = (headerStart[0]&0x20) != 0;
@@ -121,7 +121,7 @@ Boolean QuickTimeGenericRTPSource
     unsigned payloadDescriptionLength = (headerStart[2]<<8)|headerStart[3];
     headerStart += 4;
 
-#ifdef DEBUG
+#ifdef _DEBUG
     fprintf(stderr, "\tK: %d, F: %d, A: %d, Z: %d, payloadDescriptionLength: %d\n", K, F, A, Z, payloadDescriptionLength);
 #endif
     // Make sure "payloadDescriptionLength" is valid
@@ -133,7 +133,7 @@ Boolean QuickTimeGenericRTPSource
     if (packetSize < expectedHeaderSize) return False;
     unsigned char padding = expectedHeaderSize - nonPaddedSize;
 
-#ifdef DEBUG
+#ifdef _DEBUG
     unsigned mediaType = (headerStart[0]<<24)|(headerStart[1]<<16)
       |(headerStart[2]<<8)|headerStart[3];
 #endif
@@ -142,7 +142,7 @@ Boolean QuickTimeGenericRTPSource
     headerStart += 8;
 
     payloadDescriptionLength -= 12;
-#ifdef DEBUG
+#ifdef _DEBUG
     fprintf(stderr, "\tmediaType: '%c%c%c%c', timescale: %d, %d bytes of TLVs left\n", mediaType>>24, (mediaType&0xFF0000)>>16, (mediaType&0xFF00)>>8, mediaType&0xFF, qtState.timescale, payloadDescriptionLength);
 #endif
 
@@ -152,7 +152,7 @@ Boolean QuickTimeGenericRTPSource
       payloadDescriptionLength -= 4;
       if (tlvLength > payloadDescriptionLength) return False; // bad TLV
       headerStart += 4;
-#ifdef DEBUG
+#ifdef _DEBUG
       fprintf(stderr, "\t\tTLV '%c%c', length %d, leaving %d remaining bytes\n", tlvType>>8, tlvType&0xFF, tlvLength, payloadDescriptionLength - tlvLength);
       for (int i = 0; i < tlvLength; ++i) fprintf(stderr, "%02x:", headerStart[i]); fprintf(stderr, "\n");
 #endif
@@ -194,7 +194,7 @@ Boolean QuickTimeGenericRTPSource
     unsigned ssInfoLength = (headerStart[2]<<8)|headerStart[3];
     headerStart += 4;
 
-#ifdef DEBUG
+#ifdef _DEBUG
     fprintf(stderr, "\tssInfoLength: %d\n", ssInfoLength);
 #endif
     // Make sure "ssInfoLength" is valid
@@ -209,12 +209,12 @@ Boolean QuickTimeGenericRTPSource
     ssInfoLength -= 4;
     while (ssInfoLength > 3) {
       unsigned short tlvLength = (headerStart[0]<<8)|headerStart[1];
-#ifdef DEBUG
+#ifdef _DEBUG
       unsigned short tlvType = (headerStart[2]<<8)|headerStart[3];
 #endif
       ssInfoLength -= 4;
       if (tlvLength > ssInfoLength) return False; // bad TLV
-#ifdef DEBUG
+#ifdef _DEBUG
       fprintf(stderr, "\t\tTLV '%c%c', length %d, leaving %d remaining bytes\n", tlvType>>8, tlvType&0xFF, tlvLength, ssInfoLength - tlvLength);
       for (int i = 0; i < tlvLength; ++i) fprintf(stderr, "%02x:", headerStart[4+i]); fprintf(stderr, "\n");
 #endif
@@ -230,7 +230,7 @@ Boolean QuickTimeGenericRTPSource
   fCurrentPacketCompletesFrame = packet->rtpMarkerBit();
 
   resultSpecialHeaderSize = expectedHeaderSize;
-#ifdef DEBUG
+#ifdef _DEBUG
   fprintf(stderr, "Result special header size: %d\n", resultSpecialHeaderSize);
 #endif
   return True;

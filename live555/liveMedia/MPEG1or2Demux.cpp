@@ -362,7 +362,7 @@ unsigned char MPEGProgramStreamParser::parse() {
 
     return acquiredStreamTagId;
   } catch (int /*e*/) {
-#ifdef DEBUG
+#ifdef _DEBUG
     fprintf(stderr, "MPEGProgramStreamParser::parse() EXCEPTION (This is normal behavior - *not* an error)\n");
     fflush(stderr);
 #endif
@@ -380,7 +380,7 @@ static inline Boolean isPacketStartCode(unsigned code) {
 }
 
 void MPEGProgramStreamParser::parsePackHeader() {
-#ifdef DEBUG
+#ifdef _DEBUG
   fprintf(stderr, "parsing pack header\n"); fflush(stderr);
 #endif
   unsigned first4Bytes;
@@ -393,13 +393,13 @@ void MPEGProgramStreamParser::parsePackHeader() {
       skipBytes(4);
       break;
     } else if (first4Bytes == SYSTEM_HEADER_START_CODE) {
-#ifdef DEBUG
+#ifdef _DEBUG
       fprintf(stderr, "found system header instead of pack header\n");
 #endif
       setParseState(PARSING_SYSTEM_HEADER);
       return;
     } else if (isPacketStartCode(first4Bytes)) {
-#ifdef DEBUG
+#ifdef _DEBUG
       fprintf(stderr, "found packet start code 0x%02x instead of pack header\n", first4Bytes);
 #endif
       setParseState(PARSING_PES_PACKET);
@@ -466,7 +466,7 @@ void MPEGProgramStreamParser::parsePackHeader() {
 }
 
 void MPEGProgramStreamParser::parseSystemHeader() {
-#ifdef DEBUG
+#ifdef _DEBUG
   fprintf(stderr, "parsing system header\n"); fflush(stderr);
 #endif
   unsigned next4Bytes = test4Bytes();
@@ -476,7 +476,7 @@ void MPEGProgramStreamParser::parseSystemHeader() {
     return;
   }
 
-#ifdef DEBUG
+#ifdef _DEBUG
   fprintf(stderr, "saw system_header_start_code\n"); fflush(stderr);
 #endif
   skipBytes(4); // we've already seen the system_header_start_code
@@ -520,7 +520,7 @@ Boolean MPEGProgramStreamParser
 #define READER_NOT_READY 2
 
 unsigned char MPEGProgramStreamParser::parsePESPacket() {
-#ifdef DEBUG
+#ifdef _DEBUG
   fprintf(stderr, "parsing PES packet\n"); fflush(stderr);
 #endif
   unsigned next4Bytes = test4Bytes();
@@ -530,13 +530,13 @@ unsigned char MPEGProgramStreamParser::parsePESPacket() {
     return 0;
   }
 
-#ifdef DEBUG
+#ifdef _DEBUG
   fprintf(stderr, "saw packet_start_code_prefix\n"); fflush(stderr);
 #endif
   skipBytes(3); // we've already seen the packet_start_code_prefix
 
   unsigned char stream_id = get1Byte();
-#if defined(DEBUG) || defined(DEBUG_TIMESTAMPS)
+#if defined(_DEBUG) || defined(DEBUG_TIMESTAMPS)
   unsigned char streamNum = stream_id;
   char const* streamTypeStr;
   if ((stream_id&0xE0) == 0xC0) {
@@ -557,13 +557,13 @@ unsigned char MPEGProgramStreamParser::parsePESPacket() {
     streamTypeStr = "unknown";
   }
 #endif
-#ifdef DEBUG
+#ifdef _DEBUG
   static unsigned frameCount = 1;
   fprintf(stderr, "%d, saw %s stream: 0x%02x\n", frameCount, streamTypeStr, streamNum); fflush(stderr);
 #endif
 
   unsigned short PES_packet_length = get2Bytes();
-#ifdef DEBUG
+#ifdef _DEBUG
   fprintf(stderr, "PES_packet_length: %d\n", PES_packet_length); fflush(stderr);
 #endif
 
@@ -574,7 +574,7 @@ unsigned char MPEGProgramStreamParser::parsePESPacket() {
     stream_id = RAW_PES;
   }
   unsigned savedParserOffset = curOffset();
-#ifdef DEBUG_TIMESTAMPS
+#ifdef _DEBUG_TIMESTAMPS
   unsigned char pts_highBit = 0;
   unsigned pts_remainingBits = 0;
   unsigned char dts_highBit = 0;
@@ -590,7 +590,7 @@ unsigned char MPEGProgramStreamParser::parsePESPacket() {
 	nextByte = get1Byte();
       }
       if ((nextByte&0xF0) == 0x20) { // '0010'
-#ifdef DEBUG_TIMESTAMPS
+#ifdef _DEBUG_TIMESTAMPS
 	pts_highBit =  (nextByte&0x08)>>3;
 	pts_remainingBits = (nextByte&0x06)<<29;
 	unsigned next4Bytes = get4Bytes();
@@ -600,7 +600,7 @@ unsigned char MPEGProgramStreamParser::parsePESPacket() {
 	skipBytes(4);
 #endif
       } else if ((nextByte&0xF0) == 0x30) { // '0011'
-#ifdef DEBUG_TIMESTAMPS
+#ifdef _DEBUG_TIMESTAMPS
 	pts_highBit =  (nextByte&0x08)>>3;
 	pts_remainingBits = (nextByte&0x06)<<29;
 	unsigned next4Bytes = get4Bytes();
@@ -622,7 +622,7 @@ unsigned char MPEGProgramStreamParser::parsePESPacket() {
     if (!isSpecialStreamId(stream_id)) {
       // Fields in the next 3 bytes determine the size of the rest:
       unsigned next3Bytes = getBits(24);
-#ifdef DEBUG_TIMESTAMPS
+#ifdef _DEBUG_TIMESTAMPS
       unsigned char PTS_DTS_flags       = (next3Bytes&0x00C000)>>14;
 #endif
 #ifdef undef
@@ -631,7 +631,7 @@ unsigned char MPEGProgramStreamParser::parsePESPacket() {
       unsigned char DSM_trick_mode_flag = (next3Bytes&0x000800)>>11;
 #endif
       unsigned char PES_header_data_length = (next3Bytes&0x0000FF);
-#ifdef DEBUG
+#ifdef _DEBUG
       fprintf(stderr, "PES_header_data_length: 0x%02x\n", PES_header_data_length); fflush(stderr);
 #endif
 #ifdef DEBUG_TIMESTAMPS
@@ -666,7 +666,7 @@ unsigned char MPEGProgramStreamParser::parsePESPacket() {
 #endif
     }
   }
-#ifdef DEBUG_TIMESTAMPS
+#ifdef _DEBUG_TIMESTAMPS
   fprintf(stderr, "%s stream, ", streamTypeStr);
   fprintf(stderr, "packet presentation_time_stamp: 0x%x", pts_highBit);
   fprintf(stderr, "%08x\n", pts_remainingBits);
@@ -690,7 +690,7 @@ unsigned char MPEGProgramStreamParser::parsePESPacket() {
 			  << bytesSkipped << "\n";
   } else {
     PES_packet_length -= bytesSkipped;
-#ifdef DEBUG
+#ifdef _DEBUG
     unsigned next4Bytes = test4Bytes();
 #endif
 
@@ -711,7 +711,7 @@ unsigned char MPEGProgramStreamParser::parsePESPacket() {
 
       getBytes(out.to, numBytesToCopy);
       out.frameSize = numBytesToCopy;
-#ifdef DEBUG
+#ifdef _DEBUG
       fprintf(stderr, "%d, %d bytes of PES_packet_data (out.maxSize: %d); first 4 bytes: 0x%08x\n", frameCount, numBytesToCopy, out.maxSize, next4Bytes); fflush(stderr);
 #endif
       // set out.presentationTime later #####
@@ -721,7 +721,7 @@ unsigned char MPEGProgramStreamParser::parsePESPacket() {
       // Someone has been reading this stream, but isn't right now.
       // We can't deliver this frame until he asks for it, so punt for now.
       // The next time he asks for a frame, he'll get it.
-#ifdef DEBUG
+#ifdef _DEBUG
       fprintf(stderr, "%d, currently undeliverable PES data; first 4 bytes: 0x%08x - currently undeliverable!\n", frameCount, next4Bytes); fflush(stderr);
 #endif
       restoreSavedParserState(); // so we read from the beginning next time
@@ -749,7 +749,7 @@ unsigned char MPEGProgramStreamParser::parsePESPacket() {
 
   // Check for another PES Packet next:
   setParseState(PARSING_PES_PACKET);
-#ifdef DEBUG
+#ifdef _DEBUG
   ++frameCount;
 #endif
  return acquiredStreamIdTag;

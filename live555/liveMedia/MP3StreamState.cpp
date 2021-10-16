@@ -147,7 +147,7 @@ Boolean MP3StreamState::readFrame(unsigned char* outBuf, unsigned outBufSize,
   resultFrameSize = 4 + fr().frameSize;
 
   if (outBufSize < resultFrameSize) {
-#ifdef DEBUG_ERRORS
+#ifdef _DEBUG_ERRORS
     fprintf(stderr, "Insufficient buffer size for reading input frame (%d, need %d)\n",
 	    outBufSize, resultFrameSize);
 #endif
@@ -205,13 +205,13 @@ Boolean MP3StreamState::findNextFrame() {
             | ((unsigned long) hbuf[2] << 8)
             | (unsigned long) hbuf[3];
 
-#ifdef DEBUG_PARSE
+#ifdef _DEBUG_PARSE
   fprintf(stderr, "fr().hdr: 0x%08x\n", fr().hdr);
 #endif
   if (fr().oldHdr != fr().hdr || !fr().oldHdr) {
     i = 0;
   init_resync:
-#ifdef DEBUG_PARSE
+#ifdef _DEBUG_PARSE
     fprintf(stderr, "init_resync: fr().hdr: 0x%08x\n", fr().hdr);
 #endif
     if (   (fr().hdr & 0xffe00000) != 0xffe00000
@@ -228,7 +228,7 @@ Boolean MP3StreamState::findNextFrame() {
       /* Check for RIFF hdr */
       if (fr().hdr == ('R'<<24)+('I'<<16)+('F'<<8)+'F') {
 	unsigned char buf[70 /*was: 40*/];
-#ifdef DEBUG_ERRORS
+#ifdef _DEBUG_ERRORS
 	fprintf(stderr,"Skipped RIFF header\n");
 #endif
 	readFromStream(buf, 66); /* already read 4 */
@@ -249,7 +249,7 @@ Boolean MP3StreamState::findNextFrame() {
 	  readFromStream(buf, bytesToRead);
 	  bytesToSkip -= bytesToRead;
 	}
-#ifdef DEBUG_ERRORS
+#ifdef _DEBUG_ERRORS
 	fprintf(stderr,"Skipped %d-byte ID3 header\n", tagSize);
 #endif
 	goto read_again;
@@ -263,17 +263,17 @@ Boolean MP3StreamState::findNextFrame() {
 	fr().hdr <<= 8;
 	fr().hdr |= hbuf[3];
 	fr().hdr &= 0xffffffff;
-#ifdef DEBUG_PARSE
+#ifdef _DEBUG_PARSE
 	fprintf(stderr, "calling init_resync %d\n", i);
 #endif
 	goto init_resync;
       }
-#ifdef DEBUG_ERRORS
+#ifdef _DEBUG_ERRORS
       fprintf(stderr,"Giving up searching valid MPEG header\n");
 #endif
       return False;
 
-#ifdef DEBUG_ERRORS
+#ifdef _DEBUG_ERRORS
       fprintf(stderr,"Illegal Audio-MPEG-Header 0x%08lx at offset 0x%lx.\n",
 	      fr().hdr,tell_stream(str)-4);
 #endif
@@ -297,7 +297,7 @@ Boolean MP3StreamState::findNextFrame() {
 
       } while ((fr().hdr & HDRCMPMASK) != (fr().oldHdr & HDRCMPMASK)
 	       && (fr().hdr & HDRCMPMASK) != (fr().firstHdr & HDRCMPMASK));
-#ifdef DEBUG_ERRORS
+#ifdef _DEBUG_ERRORS
       fprintf (stderr, "Skipped %d bytes in input.\n", attempt);
 #endif
     }
@@ -311,7 +311,7 @@ Boolean MP3StreamState::findNextFrame() {
     fr().oldHdr = fr().hdr;
 
     if (fr().isFreeFormat) {
-#ifdef DEBUG_ERRORS
+#ifdef _DEBUG_ERRORS
       fprintf(stderr,"Free format not supported.\n");
 #endif
       return False;
@@ -319,7 +319,7 @@ Boolean MP3StreamState::findNextFrame() {
 
 #ifdef MP3_ONLY
     if (fr().layer != 3) {
-#ifdef DEBUG_ERRORS
+#ifdef _DEBUG_ERRORS
       fprintf(stderr, "MPEG layer %d is not supported!\n", fr().layer);
 #endif
       return False;
