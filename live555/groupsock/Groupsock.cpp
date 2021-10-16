@@ -45,10 +45,6 @@ OutputSocket::~OutputSocket() {
 Boolean OutputSocket::write(netAddressBits address, portNumBits portNum, u_int8_t ttl,
 			    unsigned char* buffer, unsigned bufferSize) {
   struct in_addr destAddr; destAddr.s_addr = address;
-  if (bufferSize < 500)
-  {
-	  //printf("[%s][%d][send buffer = %s][send bufferSize = %u]\n", __FUNCTION__, __LINE__, buffer, bufferSize);
-  }
   if ((unsigned)ttl == fLastSentTTL) {
     // Optimization: Don't do a 'set TTL' system call again
     if (!writeSocket(env(), socketNum(), destAddr, portNum, buffer, bufferSize)) return False;

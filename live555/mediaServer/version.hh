@@ -6,5 +6,5 @@
 #define _MEDIA_SERVER_VERSION_HH
 
 #define MEDIA_SERVER_VERSION_STRING "0.97"
-#define DEBUG  11
+
 #endif

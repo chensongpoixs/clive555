@@ -18,8 +18,8 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 // Implementation
 
 #include "UsageEnvironment.hh"
-#include <cstdio>
 #include <cstdlib>
+#include <cstdio>
 Boolean UsageEnvironment::reclaim() {
   // We delete ourselves only if we have no remainining state:
   if (liveMediaPriv == NULL && groupsockPriv == NULL) {

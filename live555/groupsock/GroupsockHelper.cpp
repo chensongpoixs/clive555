@@ -341,7 +341,6 @@ int readSocket(UsageEnvironment& env,
   int bytesRead = recvfrom(socket, (char*)buffer, bufferSize, 0,
 			   (struct sockaddr*)&fromAddress,
 			   &addressSize);
-  printf("[%s][%d][buf = %s][buffsize = %llu]\n", __FUNCTION__, __LINE__, buffer, bufferSize);
   if (bytesRead < 0) {
     //##### HACK to work around bugs in Linux and Windows:
     int err = env.getErrno();
