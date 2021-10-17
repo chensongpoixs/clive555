@@ -112,7 +112,7 @@ unsigned H263plusVideoStreamParser::parse(u_int64_t & currentDuration)
 
          // Parse the returned frame header (if any)
          if (!ParseShortHeader(fTo, &fNextInfo)) {
-#ifdef _DEBUG
+#ifdef DEBUG
 	   fprintf(stderr,"H263plusVideoStreamParser: Fatal error\n");
 #endif
 	 }
@@ -133,7 +133,7 @@ unsigned H263plusVideoStreamParser::parse(u_int64_t & currentDuration)
 	 setParseState(); // Needed for the parsing process in StreamParser
       }
    } catch (int /*e*/) {
-#ifdef _DEBUG
+#ifdef DEBUG
       fprintf(stderr, "H263plusVideoStreamParser::parse() EXCEPTION (This is normal behavior - *not* an error)\n");
 #endif
       frameSize=0;

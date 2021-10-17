@@ -179,7 +179,7 @@ unsigned MPEG1or2VideoStreamParser::parse() {
     }
     }
   } catch (int /*e*/) {
-#ifdef _DEBUG
+#ifdef DEBUG
     fprintf(stderr, "MPEG1or2VideoStreamParser::parse() EXCEPTION (This is normal behavior - *not* an error)\n");
 #endif
     return 0;  // the parsing got interrupted
@@ -210,7 +210,7 @@ unsigned MPEG1or2VideoStreamParser::useSavedVSH() {
   // Also reset the saved timestamp:
   fSavedVSHTimestamp = usingSource()->getCurrentPTS();
 
-#ifdef _DEBUG
+#ifdef DEBUG
   fprintf(stderr, "used saved video_sequence_header (%d bytes)\n", bytesToUse);
 #endif
   return bytesToUse;
@@ -242,13 +242,13 @@ static double const frameRateFromCode[] = {
 
 unsigned MPEG1or2VideoStreamParser
 ::parseVideoSequenceHeader(Boolean haveSeenStartCode) {
-#ifdef _DEBUG
+#ifdef DEBUG
   fprintf(stderr, "parsing video sequence header\n");
 #endif
   unsigned first4Bytes;
   if (!haveSeenStartCode) {
     while ((first4Bytes = test4Bytes()) != VIDEO_SEQUENCE_HEADER_START_CODE) {
-#ifdef _DEBUG
+#ifdef DEBUG
       fprintf(stderr, "ignoring non video sequence header: 0x%08x\n", first4Bytes);
 #endif
       get1Byte(); setParseState(PARSING_VIDEO_SEQUENCE_HEADER);
@@ -265,14 +265,14 @@ unsigned MPEG1or2VideoStreamParser
   unsigned paramWord1 = get4Bytes();
   save4Bytes(paramWord1);
   unsigned next4Bytes = get4Bytes();
-#ifdef _DEBUG
+#ifdef DEBUG
   unsigned short horizontal_size_value   = (paramWord1&0xFFF00000)>>(32-12);
   unsigned short vertical_size_value     = (paramWord1&0x000FFF00)>>8;
   unsigned char aspect_ratio_information = (paramWord1&0x000000F0)>>4;
 #endif
   unsigned char frame_rate_code          = (paramWord1&0x0000000F);
   usingSource()->fFrameRate = frameRateFromCode[frame_rate_code];
-#ifdef _DEBUG
+#ifdef DEBUG
   unsigned bit_rate_value                = (next4Bytes&0xFFFFC000)>>(32-18);
   unsigned vbv_buffer_size_value         = (next4Bytes&0x00001FF8)>>3;
   fprintf(stderr, "horizontal_size_value: %d, vertical_size_value: %d, aspect_ratio_information: %d, frame_rate_code: %d (=>%f fps), bit_rate_value: %d (=>%d bps), vbv_buffer_size_value: %d\n", horizontal_size_value, vertical_size_value, aspect_ratio_information, frame_rate_code, usingSource()->fFrameRate, bit_rate_value, bit_rate_value*400, vbv_buffer_size_value);
@@ -303,13 +303,13 @@ unsigned MPEG1or2VideoStreamParser::parseGOPHeader(Boolean haveSeenStartCode) {
   // 'video_sequence_header' here:
   if (needToUseSavedVSH()) return useSavedVSH();
 
-#ifdef _DEBUG
+#ifdef DEBUG
   fprintf(stderr, "parsing GOP header\n");
 #endif
   unsigned first4Bytes;
   if (!haveSeenStartCode) {
     while ((first4Bytes = test4Bytes()) != GROUP_START_CODE) {
-#ifdef _DEBUG
+#ifdef DEBUG
       fprintf(stderr, "ignoring non GOP start code: 0x%08x\n", first4Bytes);
 #endif
       get1Byte(); setParseState(PARSING_GOP_HEADER);
@@ -335,7 +335,7 @@ unsigned MPEG1or2VideoStreamParser::parseGOPHeader(Boolean haveSeenStartCode) {
 #if defined(DEBUG) || defined(DEBUG_TIMESTAMPS)
   fprintf(stderr, "time_code: 0x%07x, drop_frame %d, hours %d, minutes %d, seconds %d, pictures %d\n", time_code, drop_frame_flag, time_code_hours, time_code_minutes, time_code_seconds, time_code_pictures);
 #endif
-#ifdef _DEBUG
+#ifdef DEBUG
   Boolean closed_gop  = (next4Bytes&0x00000040) != 0;
   Boolean broken_link = (next4Bytes&0x00000020) != 0;
   fprintf(stderr, "closed_gop: %d, broken_link: %d\n", closed_gop, broken_link);
@@ -369,7 +369,7 @@ inline Boolean isSliceStartCode(unsigned fourBytes) {
 }
 
 unsigned MPEG1or2VideoStreamParser::parsePictureHeader() {
-#ifdef _DEBUG
+#ifdef DEBUG
   fprintf(stderr, "parsing picture header\n");
 #endif
   // Note that we've already read the PICTURE_START_CODE
@@ -377,7 +377,7 @@ unsigned MPEG1or2VideoStreamParser::parsePictureHeader() {
   unsigned next4Bytes = get4Bytes();
   unsigned short temporal_reference = (next4Bytes&0xFFC00000)>>(32-10);
   unsigned char picture_coding_type = (next4Bytes&0x00380000)>>19;
-#ifdef _DEBUG
+#ifdef DEBUG
   unsigned short vbv_delay          = (next4Bytes&0x0007FFF8)>>3;
   fprintf(stderr, "temporal_reference: %d, picture_coding_type: %d, vbv_delay: %d\n", temporal_reference, picture_coding_type, vbv_delay);
 #endif
@@ -418,7 +418,7 @@ unsigned MPEG1or2VideoStreamParser::parsePictureHeader() {
 unsigned MPEG1or2VideoStreamParser::parseSlice() {
   // Note that we've already read the slice_start_code:
   unsigned next4Bytes = PICTURE_START_CODE|fCurrentSliceNumber;
-#ifdef _DEBUG_SLICE
+#ifdef DEBUG_SLICE
   fprintf(stderr, "parsing slice: 0x%08x\n", next4Bytes);
 #endif
 

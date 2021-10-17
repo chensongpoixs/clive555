@@ -88,7 +88,7 @@ u_int32_t RTPSink::convertToRTPTimestamp(struct timeval tv) {
   }
 
   u_int32_t const rtpTimestamp = fTimestampBase + timestampIncrement;
-#ifdef _DEBUG_TIMESTAMPS
+#ifdef DEBUG_TIMESTAMPS
   fprintf(stderr, "fTimestampBase: 0x%08x, tv: %lu.%06ld\n\t=> RTP timestamp: 0x%08x\n",
 	  fTimestampBase, tv.tv_sec, tv.tv_usec, rtpTimestamp);
   fflush(stderr);
@@ -194,7 +194,7 @@ void RTPTransmissionStatsDB
     stats = new RTPTransmissionStats(fOurRTPSink, SSRC);
     if (stats == NULL) return;
     add(SSRC, stats);
-#ifdef _DEBUG_RR
+#ifdef DEBUG_RR
     fprintf(stderr, "Adding new entry for SSRC %x in RTPTransmissionStatsDB\n", SSRC);
 #endif
   }
@@ -280,7 +280,7 @@ void RTPTransmissionStats
   fJitter = jitter;
   fLastSRTime = lastSRTime;
   fDiffSR_RRTime = diffSR_RRTime;
-#ifdef _DEBUG_RR
+#ifdef DEBUG_RR
   fprintf(stderr, "RTCP RR data (received at %lu.%06ld): lossStats 0x%08x, lastPacketNumReceived 0x%08x, jitter 0x%08x, lastSRTime 0x%08x, diffSR_RRTime 0x%08x\n",
           fTimeReceived.tv_sec, fTimeReceived.tv_usec, lossStats, lastPacketNumReceived, jitter, lastSRTime, diffSR_RRTime);
   unsigned rtd = roundTripDelay();

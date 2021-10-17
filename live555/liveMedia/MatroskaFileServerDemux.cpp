@@ -66,7 +66,7 @@ ServerMediaSubsession* MatroskaFileServerDemux
   }
 
   if (result != NULL) {
-#ifdef _DEBUG
+#ifdef DEBUG
     fprintf(stderr, "Created 'ServerMediaSubsession' object for track #%d: %s (%s)\n", track->trackNumber, track->codecID, track->mimeType);
 #endif
   }

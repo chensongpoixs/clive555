@@ -494,7 +494,7 @@ void RTSPServer::RTSPClientConnection::handleHTTPCmd_notFound() {
 }
 
 void RTSPServer::RTSPClientConnection::handleHTTPCmd_OPTIONS() {
-#ifdef _DEBUG
+#ifdef DEBUG
   fprintf(stderr, "Handled HTTP \"OPTIONS\" request\n");
 #endif
   // Construct a response to the "OPTIONS" command that notes that our special headers (for RTSP-over-HTTP tunneling) are allowed:
@@ -517,7 +517,7 @@ void RTSPServer::RTSPClientConnection::handleHTTPCmd_TunnelingGET(char const* se
   }
   delete[] fOurSessionCookie; fOurSessionCookie = strDup(sessionCookie);
   fOurRTSPServer.fClientConnectionsForHTTPTunneling->Add(sessionCookie, (void*)this);
-#ifdef _DEBUG
+#ifdef DEBUG
   fprintf(stderr, "Handled HTTP \"GET\" request (client output socket: %d)\n", fClientOutputSocket);
 #endif
   
@@ -547,7 +547,7 @@ Boolean RTSPServer::RTSPClientConnection
     fIsActive = False; // triggers deletion of ourself
     return False;
   }
-#ifdef _DEBUG
+#ifdef DEBUG
   fprintf(stderr, "Handled HTTP \"POST\" request (client input socket: %d)\n", fClientInputSocket);
 #endif
   
@@ -614,7 +614,7 @@ void RTSPServer::RTSPClientConnection::handleRequestBytes(int newBytesRead) {
     if (newBytesRead < 0 || (unsigned)newBytesRead >= fRequestBufferBytesLeft) {
       // Either the client socket has died, or the request was too big for us.
       // Terminate this connection:
-#ifdef _DEBUG
+#ifdef DEBUG
       fprintf(stderr, "RTSPClientConnection[%p]::handleRequestBytes() read %d new bytes (of %d); terminating connection!\n", this, newBytesRead, fRequestBufferBytesLeft);
 #endif
       fIsActive = False;
@@ -623,7 +623,7 @@ void RTSPServer::RTSPClientConnection::handleRequestBytes(int newBytesRead) {
     
     Boolean endOfMsg = False;
     unsigned char* ptr = &fRequestBuffer[fRequestBytesAlreadySeen];
-#ifdef _DEBUG
+#ifdef DEBUG
     ptr[newBytesRead] = '\0';
     fprintf(stderr, "RTSPClientConnection[%p]::handleRequestBytes() %s %d new bytes:%s\n",
 	    this, numBytesRemaining > 0 ? "processing" : "read", newBytesRead, ptr);
@@ -650,8 +650,7 @@ void RTSPServer::RTSPClientConnection::handleRequestBytes(int newBytesRead) {
 	ptr[newBytesRead] = '\0';
 	unsigned decodedSize;
 	unsigned char* decodedBytes = base64Decode((char const*)(ptr-fBase64RemainderCount), numBytesToDecode, decodedSize);
-
-#ifdef _DEBUG
+#ifdef DEBUG
 	fprintf(stderr, "Base64-decoded %d input bytes into %d new bytes:", numBytesToDecode, decodedSize);
 	for (unsigned k = 0; k < decodedSize; ++k) fprintf(stderr, "%c", decodedBytes[k]);
 	fprintf(stderr, "\n");
@@ -712,26 +711,32 @@ void RTSPServer::RTSPClientConnection::handleRequestBytes(int newBytesRead) {
     fLastCRLF[2] = '\r'; // restore its value
     // Check first for a bogus "Content-Length" value that would cause a pointer wraparound:
     if (tmpPtr + 2 + contentLength < tmpPtr + 2) {
-#ifdef _DEBUG
+#ifdef DEBUG
       fprintf(stderr, "parseRTSPRequestString() returned a bogus \"Content-Length:\" value: 0x%x (%d)\n", contentLength, (int)contentLength);
 #endif
       contentLength = 0;
       parseSucceeded = False;
     }
-    if (parseSucceeded) {
-#ifdef _DEBUG
+    if (parseSucceeded) 
+	{
+#ifdef DEBUG
       fprintf(stderr, "parseRTSPRequestString() succeeded, returning cmdName \"%s\", urlPreSuffix \"%s\", urlSuffix \"%s\", CSeq \"%s\", Content-Length %u, with %d bytes following the message.\n", cmdName, urlPreSuffix, urlSuffix, cseq, contentLength, ptr + newBytesRead - (tmpPtr + 2));
 #endif
       // If there was a "Content-Length:" header, then make sure we've received all of the data that it specified:
-      if (ptr + newBytesRead < tmpPtr + 2 + contentLength) break; // we still need more data; subsequent reads will give it to us 
-      
+	  if (ptr + newBytesRead < tmpPtr + 2 + contentLength)
+	  {
+		  break; // we still need more data; subsequent reads will give it to us 
+	  }
       // If the request included a "Session:" id, and it refers to a client session that's
       // current ongoing, then use this command to indicate 'liveness' on that client session:
       Boolean const requestIncludedSessionId = sessionIdStr[0] != '\0';
-      if (requestIncludedSessionId) {
-	clientSession
-	  = (RTSPServer::RTSPClientSession*)(fOurRTSPServer.lookupClientSession(sessionIdStr));
-	if (clientSession != NULL) clientSession->noteLiveness();
+      if (requestIncludedSessionId) 
+	  {
+		clientSession = (RTSPServer::RTSPClientSession*)(fOurRTSPServer.lookupClientSession(sessionIdStr));
+		if (clientSession != NULL)
+		{
+			clientSession->noteLiveness();
+		}
       }
     
       // We now have a complete RTSP request.
@@ -740,23 +745,26 @@ void RTSPServer::RTSPClientConnection::handleRequestBytes(int newBytesRead) {
       if (strcmp(cmdName, "OPTIONS") == 0) {
 	// If the "OPTIONS" command included a "Session:" id for a session that doesn't exist,
 	// then treat this as an error:
-	if (requestIncludedSessionId && clientSession == NULL) {
-	  handleCmd_sessionNotFound();
-	} else {
-	  // Normal case:
-	  handleCmd_OPTIONS();
-	}
-      } else if (urlPreSuffix[0] == '\0' && urlSuffix[0] == '*' && urlSuffix[1] == '\0') {
+		if (requestIncludedSessionId && clientSession == NULL) 
+		{
+		  handleCmd_sessionNotFound();
+		} else {
+		  // Normal case:
+		  handleCmd_OPTIONS();
+		}
+      } 
+	  else if (urlPreSuffix[0] == '\0' && urlSuffix[0] == '*' && urlSuffix[1] == '\0') 
+	  {
 	// The special "*" URL means: an operation on the entire server.  This works only for GET_PARAMETER and SET_PARAMETER:
-	if (strcmp(cmdName, "GET_PARAMETER") == 0) {
-	  handleCmd_GET_PARAMETER((char const*)fRequestBuffer);
-	} else if (strcmp(cmdName, "SET_PARAMETER") == 0) {
-	  handleCmd_SET_PARAMETER((char const*)fRequestBuffer);
-	} else {
-	  handleCmd_notSupported();
-	}
+		if (strcmp(cmdName, "GET_PARAMETER") == 0) {
+		  handleCmd_GET_PARAMETER((char const*)fRequestBuffer);
+		} else if (strcmp(cmdName, "SET_PARAMETER") == 0) {
+		  handleCmd_SET_PARAMETER((char const*)fRequestBuffer);
+		} else {
+		  handleCmd_notSupported();
+		}
       } else if (strcmp(cmdName, "DESCRIBE") == 0) {
-	handleCmd_DESCRIBE(urlPreSuffix, urlSuffix, (char const*)fRequestBuffer);
+		handleCmd_DESCRIBE(urlPreSuffix, urlSuffix, (char const*)fRequestBuffer);
       } else if (strcmp(cmdName, "SETUP") == 0) {
 	Boolean areAuthenticated = True;
 
@@ -816,8 +824,10 @@ void RTSPServer::RTSPClientConnection::handleRequestBytes(int newBytesRead) {
 	// The command is one that we don't handle:
 	handleCmd_notSupported();
       }
-    } else {
-#ifdef _DEBUG
+    } 
+	else 
+	{
+#ifdef DEBUG
       fprintf(stderr, "parseRTSPRequestString() failed; checking now for HTTP commands (for RTSP-over-HTTP tunneling)...\n");
 #endif
       // The request was not (valid) RTSP, but check for a special case: HTTP commands (for setting up RTSP-over-HTTP tunneling):
@@ -830,7 +840,7 @@ void RTSPServer::RTSPClientConnection::handleRequestBytes(int newBytesRead) {
 					      acceptStr, sizeof acceptStr);
       *fLastCRLF = '\r';
       if (parseSucceeded) {
-#ifdef _DEBUG
+#ifdef DEBUG
 	fprintf(stderr, "parseHTTPRequestString() succeeded, returning cmdName \"%s\", urlSuffix \"%s\", sessionCookie \"%s\", acceptStr \"%s\"\n", cmdName, urlSuffix, sessionCookie, acceptStr);
 #endif
 	// Check that the HTTP command is valid for RTSP-over-HTTP tunneling: There must be a 'session cookie'.
@@ -864,14 +874,14 @@ void RTSPServer::RTSPClientConnection::handleRequestBytes(int newBytesRead) {
 	  handleHTTPCmd_notSupported();
 	}
       } else {
-#ifdef _DEBUG
+#ifdef DEBUG
 	fprintf(stderr, "parseHTTPRequestString() failed!\n");
 #endif
 	handleCmd_bad();
       }
     }
     
-#ifdef _DEBUG
+#ifdef DEBUG
     fprintf(stderr, "sending response: %s", fResponseBuffer);
 #endif
     send(fClientOutputSocket, (char const*)fResponseBuffer, strlen((char*)fResponseBuffer), 0);
@@ -997,7 +1007,7 @@ Boolean RTSPServer::RTSPClientConnection
     
     // Next, the username has to be known to us:
     char const* password = authDB->lookupPassword(username);
-#ifdef _DEBUG
+#ifdef DEBUG
     fprintf(stderr, "lookupPassword(%s) returned password %s\n", username, password);
 #endif
     if (password == NULL) break;
@@ -1256,7 +1266,40 @@ void RTSPServer::RTSPClientSession
   char const* streamName = urlPreSuffix; // in the normal case
   char const* trackId = urlSuffix; // in the normal case
   char* concatenatedStreamName = NULL; // in the normal case
-  
+  printf("[%s][%d][urlPreSuffix = %s][urlSuffix = %s][fullRequestStr = %s]\n", __FUNCTION__, __LINE__, urlPreSuffix, urlSuffix, fullRequestStr);
+ /*
+ [RTSPServer::RTSPClientSession::handleCmd_SETUP][1260][urlPreSuffix = ][urlSuffix = input.264][fullRequestStr = SETUP rt
+sp://127.0.0.1:554/input.264 RTSP/1.0
+CSeq: 0
+Transport: RTP/AVP;unicast;client_port=9224-9225
+
+]
+[RTSPServer::RTSPClientSession::handleCmd_SETUP][1260][urlPreSuffix = input.264][urlSuffix = track1][fullRequestStr = SE
+TUP rtsp://127.0.0.1/input.264/track1 RTSP/1.0
+CSeq: 4
+User-Agent: LibVLC/3.0.16 (LIVE555 Streaming Media v2016.11.28)
+Transport: RTP/AVP;unicast;client_port=57902-57903
+
+]
+ */
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  /*
+  [RTSPServer::RTSPClientSession::handleCmd_SETUP][1260][urlPreSuffix = video.mkv][urlSuffix = track1][fullRequestStr =
+TUP rtsp://127.0.0.1/video.mkv/track1 RTSP/1.0
+CSeq: 4
+User-Agent: LibVLC/3.0.16 (LIVE555 Streaming Media v2016.11.28)
+Transport: RTP/AVP;unicast;client_port=51170-51171
+
+]
+[RTSPServer::RTSPClientSession::handleCmd_SETUP][1260][urlPreSuffix = video.mkv][urlSuffix = track2][fullRequestStr =
+TUP rtsp://127.0.0.1/video.mkv/track2 RTSP/1.0
+CSeq: 5
+User-Agent: LibVLC/3.0.16 (LIVE555 Streaming Media v2016.11.28)
+Transport: RTP/AVP;unicast;client_port=51172-51173
+Session: F5BF25AA
+
+]
+  */
   do {
     // First, make sure the specified stream name exists:
     ServerMediaSession* sms

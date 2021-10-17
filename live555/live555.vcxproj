@@ -203,8 +203,6 @@
     <ClCompile Include="liveMedia\VP9VideoRTPSource.cpp" />
     <ClCompile Include="liveMedia\WAVAudioFileServerMediaSubsession.cpp" />
     <ClCompile Include="liveMedia\WAVAudioFileSource.cpp" />
-    <ClCompile Include="mediaServer\DynamicRTSPServer.cpp" />
-    <ClCompile Include="mediaServer\live555MediaServer.cpp" />
     <ClCompile Include="UsageEnvironment\HashTable.cpp" />
     <ClCompile Include="UsageEnvironment\strDup.cpp" />
     <ClCompile Include="UsageEnvironment\UsageEnvironment.cpp" />
@@ -397,8 +395,6 @@
     <ClInclude Include="liveMedia\OggFileServerMediaSubsession.hh" />
     <ClInclude Include="liveMedia\rtcp_from_spec.h" />
     <ClInclude Include="liveMedia\StreamParser.hh" />
-    <ClInclude Include="mediaServer\DynamicRTSPServer.hh" />
-    <ClInclude Include="mediaServer\version.hh" />
     <ClInclude Include="UsageEnvironment\include\Boolean.hh" />
     <ClInclude Include="UsageEnvironment\include\HashTable.hh" />
     <ClInclude Include="UsageEnvironment\include\strDup.hh" />
@@ -414,10 +410,11 @@
     <ProjectGuid>{E0D05801-6546-4A2B-BF19-D3BA8ABBF356}</ProjectGuid>
     <RootNamespace>live555</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <ProjectName>live555</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v140</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
@@ -460,7 +457,9 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <OutDir>$(SolutionDir)lib\$(Configuration)\</OutDir>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -472,7 +471,7 @@
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>msvcrt.lib;kernel32.lib;advapi32.lib;shell32.lib;winmm.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>msvcrt.lib;kernel32.lib;advapi32.lib;shell32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>
       </IgnoreSpecificDefaultLibraries>
       <AdditionalOptions>/NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:msvcrt.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:msvcrtd.lib %(AdditionalOptions)</AdditionalOptions>

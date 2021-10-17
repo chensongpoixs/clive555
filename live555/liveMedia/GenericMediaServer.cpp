@@ -196,7 +196,7 @@ void GenericMediaServer::incomingConnectionHandlerOnSocket(int serverSocket) {
   makeSocketNonBlocking(clientSocket);
   increaseSendBufferTo(envir(), clientSocket, 50*1024);
   
-#ifdef _DEBUG
+#ifdef DEBUG
   envir() << "accept()ed connection from " << AddressString(clientAddr).val() << "\n";
 #endif
   
@@ -281,7 +281,7 @@ GenericMediaServer::ClientSession::~ClientSession() {
 }
 
 void GenericMediaServer::ClientSession::noteLiveness() {
-#ifdef _DEBUG
+#ifdef DEBUG
   char const* streamName
     = (fOurServerMediaSession == NULL) ? "???" : fOurServerMediaSession->streamName();
   fprintf(stderr, "Client session (id \"%08X\", stream name \"%s\"): Liveness indication\n",
@@ -302,7 +302,7 @@ void GenericMediaServer::ClientSession::noteClientLiveness(ClientSession* client
 
 void GenericMediaServer::ClientSession::livenessTimeoutTask(ClientSession* clientSession) {
   // If this gets called, the client session is assumed to have timed out, so delete it:
-#ifdef _DEBUG
+#ifdef DEBUG
   char const* streamName
     = (clientSession->fOurServerMediaSession == NULL) ? "???" : clientSession->fOurServerMediaSession->streamName();
   fprintf(stderr, "Client session (id \"%08X\", stream name \"%s\") has timed out (due to inactivity)\n",

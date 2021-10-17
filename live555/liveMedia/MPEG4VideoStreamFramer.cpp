@@ -217,7 +217,7 @@ unsigned MPEG4VideoStreamParser::parse() {
     }
     }
   } catch (int /*e*/) {
-#ifdef _DEBUG
+#ifdef DEBUG
     fprintf(stderr, "MPEG4VideoStreamParser::parse() EXCEPTION (This is normal behavior - *not* an error)\n");
 #endif
     return 0;  // the parsing got interrupted
@@ -232,14 +232,14 @@ unsigned MPEG4VideoStreamParser::parse() {
 
 unsigned MPEG4VideoStreamParser
 ::parseVisualObjectSequence(Boolean haveSeenStartCode) {
-#ifdef _DEBUG
+#ifdef DEBUG
   fprintf(stderr, "parsing VisualObjectSequence\n");
 #endif
   usingSource()->startNewConfig();
   u_int32_t first4Bytes;
   if (!haveSeenStartCode) {
     while ((first4Bytes = test4Bytes()) != VISUAL_OBJECT_SEQUENCE_START_CODE) {
-#ifdef _DEBUG
+#ifdef DEBUG
       fprintf(stderr, "ignoring non VS header: 0x%08x\n", first4Bytes);
 #endif
       get1Byte(); setParseState(PARSING_VISUAL_OBJECT_SEQUENCE);
@@ -254,7 +254,7 @@ unsigned MPEG4VideoStreamParser
 
   // The next byte is the "profile_and_level_indication":
   u_int8_t pali = get1Byte();
-#ifdef _DEBUG
+#ifdef DEBUG
   fprintf(stderr, "profile_and_level_indication: %02x\n", pali);
 #endif
   saveByte(pali);
@@ -283,7 +283,7 @@ static inline Boolean isVideoObjectStartCode(u_int32_t code) {
 }
 
 unsigned MPEG4VideoStreamParser::parseVisualObject() {
-#ifdef _DEBUG
+#ifdef DEBUG
   fprintf(stderr, "parsing VisualObject\n");
 #endif
   // Note that we've already read the VISUAL_OBJECT_START_CODE
@@ -294,7 +294,7 @@ unsigned MPEG4VideoStreamParser::parseVisualObject() {
   Boolean is_visual_object_identifier = (nextByte&0x80) != 0;
   u_int8_t visual_object_type;
   if (is_visual_object_identifier) {
-#ifdef _DEBUG
+#ifdef DEBUG
     fprintf(stderr, "visual_object_verid: 0x%x; visual_object_priority: 0x%x\n", (nextByte&0x78)>>3, (nextByte&0x07));
 #endif
     nextByte = get1Byte(); saveByte(nextByte);
@@ -302,7 +302,7 @@ unsigned MPEG4VideoStreamParser::parseVisualObject() {
   } else {
     visual_object_type = (nextByte&0x78)>>3;
   }
-#ifdef _DEBUG
+#ifdef DEBUG
   fprintf(stderr, "visual_object_type: 0x%x\n", visual_object_type);
 #endif
   // At present, we support only the "Video ID" "visual_object_type" (1)
@@ -317,7 +317,7 @@ unsigned MPEG4VideoStreamParser::parseVisualObject() {
     saveToNextCode(next4Bytes);
   }
   save4Bytes(next4Bytes);
-#ifdef _DEBUG
+#ifdef DEBUG
   fprintf(stderr, "saw a video_object_start_code: 0x%08x\n", next4Bytes);
 #endif
 
@@ -387,7 +387,7 @@ void MPEG4VideoStreamParser::analyzeVOLHeader() {
     }
 
     if (!getNextFrameBits(16, vop_time_increment_resolution)) break;
-#ifdef _DEBUG
+#ifdef DEBUG
     fprintf(stderr, "vop_time_increment_resolution: %d\n", vop_time_increment_resolution);
 #endif
     if (vop_time_increment_resolution == 0) {
@@ -410,7 +410,7 @@ void MPEG4VideoStreamParser::analyzeVOLHeader() {
     if (fixed_vop_rate) {
       // Get the following "fixed_vop_time_increment":
       if (!getNextFrameBits(fNumVTIRBits, fixed_vop_time_increment)) break;
-#ifdef _DEBUG
+#ifdef DEBUG
       fprintf(stderr, "fixed_vop_time_increment: %d\n", fixed_vop_time_increment);
       if (fixed_vop_time_increment == 0) {
 	usingSource()->envir() << "MPEG4VideoStreamParser::analyzeVOLHeader(): fixed_vop_time_increment is zero!\n";
@@ -420,7 +420,7 @@ void MPEG4VideoStreamParser::analyzeVOLHeader() {
     // Use "vop_time_increment_resolution" as the 'frame rate'
     // (really, 'tick rate'):
     usingSource()->fFrameRate = (double)vop_time_increment_resolution;
-#ifdef _DEBUG
+#ifdef DEBUG
     fprintf(stderr, "fixed_vop_rate: %d; 'frame' (really tick) rate: %f\n", fixed_vop_rate, usingSource()->fFrameRate);
 #endif
 
@@ -435,7 +435,7 @@ void MPEG4VideoStreamParser::analyzeVOLHeader() {
 }
 
 unsigned MPEG4VideoStreamParser::parseVideoObjectLayer() {
-#ifdef _DEBUG
+#ifdef DEBUG
   fprintf(stderr, "parsing VideoObjectLayer\n");
 #endif
   // The first 4 bytes must be a "video_object_layer_start_code".
@@ -470,7 +470,7 @@ unsigned MPEG4VideoStreamParser::parseVideoObjectLayer() {
 }
 
 unsigned MPEG4VideoStreamParser::parseGroupOfVideoObjectPlane() {
-#ifdef _DEBUG
+#ifdef DEBUG
   fprintf(stderr, "parsing GroupOfVideoObjectPlane\n");
 #endif
   // Note that we've already read the GROUP_VOP_START_CODE
@@ -516,7 +516,7 @@ unsigned MPEG4VideoStreamParser::parseGroupOfVideoObjectPlane() {
 }
 
 unsigned MPEG4VideoStreamParser::parseVideoObjectPlane() {
-#ifdef _DEBUG
+#ifdef DEBUG
   fprintf(stderr, "#parsing VideoObjectPlane\n");
 #endif
   // Note that we've already read the VOP_START_CODE
@@ -558,7 +558,7 @@ unsigned MPEG4VideoStreamParser::parseVideoObjectPlane() {
     vop_time_increment >>= 1;
     mask >>= 1;
   }
-#ifdef _DEBUG
+#ifdef DEBUG
   fprintf(stderr, "vop_coding_type: %d(%c), modulo_time_base: %d, vop_time_increment: %d\n", vop_coding_type, "IPBS"[vop_coding_type], modulo_time_base, vop_time_increment);
 #endif
 
@@ -582,7 +582,7 @@ unsigned MPEG4VideoStreamParser::parseVideoObjectPlane() {
       // This is apparently a buggy MPEG-4 video stream, because
       // "vop_time_increment" did not change.  Overcome this error,
       // by pretending that it did change.
-#ifdef _DEBUG
+#ifdef DEBUG
       fprintf(stderr, "Buggy MPEG-4 video stream: \"vop_time_increment\" did not change!\n");
 #endif
       // The following assumes that we don't have 'B' frames.  If we do, then TARFU!
@@ -596,7 +596,7 @@ unsigned MPEG4VideoStreamParser::parseVideoObjectPlane() {
 	// "vop_time_increment" wraps around, but without
 	// "modulo_time_base" changing (or just having had a new time code).
 	// Overcome this by pretending that "vop_time_increment" *did* wrap around:
-#ifdef _DEBUG
+#ifdef DEBUG
 	fprintf(stderr, "Buggy MPEG-4 video stream: \"vop_time_increment\" wrapped around, but without \"modulo_time_base\" changing!\n");
 #endif
 	++fSecondsSinceLastTimeCode;
@@ -666,7 +666,7 @@ unsigned MPEG4VideoStreamParser::parseVideoObjectPlane() {
 }
 
 unsigned MPEG4VideoStreamParser::parseVisualObjectSequenceEndCode() {
-#ifdef _DEBUG
+#ifdef DEBUG
   fprintf(stderr, "parsing VISUAL_OBJECT_SEQUENCE_END_CODE\n");
 #endif
   // Note that we've already read the VISUAL_OBJECT_SEQUENCE_END_CODE

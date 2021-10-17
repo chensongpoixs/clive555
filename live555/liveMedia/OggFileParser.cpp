@@ -94,7 +94,7 @@ Boolean OggFileParser::parse() {
       }
     }
   } catch (int /*e*/) {
-#ifdef _DEBUG
+#ifdef DEBUG
     fprintf(stderr, "OggFileParser::parse() EXCEPTION (This is normal behavior - *not* an error)\n");
 #endif
     return False; // the parsing got interrupted
@@ -102,7 +102,7 @@ Boolean OggFileParser::parse() {
 }
 
 Boolean OggFileParser::parseStartOfFile() {
-#ifdef _DEBUG
+#ifdef DEBUG
   fprintf(stderr, "parsing start of file\n");
 #endif
   // Read and parse each 'page', until we see the first non-BOS page, or until we have
@@ -112,7 +112,7 @@ Boolean OggFileParser::parseStartOfFile() {
     header_type_flag = parseInitialPage();
   } while ((header_type_flag&0x02) != 0 || needHeaders());
   
-#ifdef _DEBUG
+#ifdef DEBUG
   fprintf(stderr, "Finished parsing start of file\n");
 #endif
   return True;
@@ -159,7 +159,7 @@ u_int8_t OggFileParser::parseInitialPage() {
   }
 
   if (track != NULL) { // sanity check
-#ifdef _DEBUG
+#ifdef DEBUG
     fprintf(stderr, "This track's MIME type: %s\n",
 	    track->mimeType == NULL ? "(unknown)" : track->mimeType);
 #endif
@@ -203,7 +203,7 @@ u_int8_t OggFileParser::parseInitialPage() {
 	  }
 	}
 	if (headerIsKnown) {
-#ifdef _DEBUG
+#ifdef DEBUG
 	  char const* headerName[3] = { "identification", "comment", "setup" };
 	  fprintf(stderr, "Saved %d-byte %s \"%s\" header\n", packetSize, track->mimeType,
 		  headerName[index]);
@@ -230,7 +230,7 @@ u_int8_t OggFileParser::parseInitialPage() {
 
   // Skip over any remaining packet data bytes:
   if (fPacketSizeTable->totSizes > 0) {
-#ifdef _DEBUG
+#ifdef DEBUG
     fprintf(stderr, "Skipping %d remaining packet data bytes\n", fPacketSizeTable->totSizes);
 #endif
     skipBytes(fPacketSizeTable->totSizes);
@@ -332,13 +332,13 @@ static Boolean parseVorbisSetup_codebook(LEBitVector& bv) {
   unsigned codebook_dimensions = bv.getBits(16);
   unsigned codebook_entries = bv.getBits(24);
   unsigned ordered = bv.getBits(1);
-#ifdef _DEBUG_SETUP_HEADER
+#ifdef DEBUG_SETUP_HEADER
   fprintf(stderr, "\t\t\tcodebook_dimensions: %d; codebook_entries: %d, ordered: %d\n",
 	  codebook_dimensions, codebook_entries, ordered);
 #endif
   if (!ordered) {
     unsigned sparse = bv.getBits(1);
-#ifdef _DEBUG_SETUP_HEADER
+#ifdef DEBUG_SETUP_HEADER
     fprintf(stderr, "\t\t\t!ordered: sparse %d\n", sparse);
 #endif
     for (unsigned i = 0; i < codebook_entries; ++i) {
@@ -354,21 +354,21 @@ static Boolean parseVorbisSetup_codebook(LEBitVector& bv) {
       } else {
 	codewordLength = bv.getBits(5) + 1;
       }
-#ifdef _DEBUG_SETUP_HEADER
+#ifdef DEBUG_SETUP_HEADER
       fprintf(stderr, "\t\t\t\tcodeword length[%d]:\t%d\n", i, codewordLength);
 #else
       codewordLength = codewordLength; // to prevent compiler warning
 #endif
     }
   } else { // ordered
-#ifdef _DEBUG_SETUP_HEADER
+#ifdef DEBUG_SETUP_HEADER
     fprintf(stderr, "\t\t\tordered:\n");
 #endif
     unsigned current_entry = 0;
     unsigned current_length = bv.getBits(5) + 1;
     do {
       unsigned number = bv.getBits(ilog(codebook_entries - current_entry));
-#ifdef _DEBUG_SETUP_HEADER
+#ifdef DEBUG_SETUP_HEADER
       fprintf(stderr, "\t\t\t\tcodeword length[%d..%d]:\t%d\n",
 	      current_entry, current_entry + number - 1, current_length);
 #endif
@@ -382,7 +382,7 @@ static Boolean parseVorbisSetup_codebook(LEBitVector& bv) {
   }
 
   unsigned codebook_lookup_type = bv.getBits(4);
-#ifdef _DEBUG_SETUP_HEADER
+#ifdef DEBUG_SETUP_HEADER
   fprintf(stderr, "\t\t\tcodebook_lookup_type: %d\n", codebook_lookup_type);
 #endif
   if (codebook_lookup_type > 2) {
@@ -409,11 +409,11 @@ static Boolean parseVorbisSetup_codebooks(LEBitVector& bv) {
   if (bv.noMoreBits()) return False;
 
   unsigned vorbis_codebook_count = bv.getBits(8) + 1;
-#ifdef _DEBUG_SETUP_HEADER
+#ifdef DEBUG_SETUP_HEADER
   fprintf(stderr, "\tCodebooks: vorbis_codebook_count: %d\n", vorbis_codebook_count);
 #endif
   for (unsigned i = 0; i < vorbis_codebook_count; ++i) {
-#ifdef _DEBUG_SETUP_HEADER
+#ifdef DEBUG_SETUP_HEADER
     fprintf(stderr, "\t\tCodebook %d:\n", i);
 #endif
     if (!parseVorbisSetup_codebook(bv)) return False;
@@ -426,7 +426,7 @@ static Boolean parseVorbisSetup_timeDomainTransforms(LEBitVector& bv) {
   if (bv.noMoreBits()) return False;
 
   unsigned vorbis_time_count = bv.getBits(6) + 1;
-#ifdef _DEBUG_SETUP_HEADER
+#ifdef DEBUG_SETUP_HEADER
   fprintf(stderr, "\tTime domain transforms: vorbis_time_count: %d\n", vorbis_time_count);
 #endif
   for (unsigned i = 0; i < vorbis_time_count; ++i) {
@@ -444,7 +444,7 @@ static Boolean parseVorbisSetup_floors(LEBitVector& bv) {
   if (bv.noMoreBits()) return False;
 
   unsigned vorbis_floor_count = bv.getBits(6) + 1;
-#ifdef _DEBUG_SETUP_HEADER
+#ifdef DEBUG_SETUP_HEADER
   fprintf(stderr, "\tFloors: vorbis_floor_count: %d\n", vorbis_floor_count);
 #endif
   for (unsigned i = 0; i < vorbis_floor_count; ++i) {
@@ -497,7 +497,7 @@ static Boolean parseVorbisSetup_residues(LEBitVector& bv) {
   if (bv.noMoreBits()) return False;
 
   unsigned vorbis_residue_count = bv.getBits(6) + 1;
-#ifdef _DEBUG_SETUP_HEADER
+#ifdef DEBUG_SETUP_HEADER
   fprintf(stderr, "\tResidues: vorbis_residue_count: %d\n", vorbis_residue_count);
 #endif
   for (unsigned i = 0; i < vorbis_residue_count; ++i) {
@@ -543,7 +543,7 @@ static Boolean parseVorbisSetup_mappings(LEBitVector& bv, unsigned audio_channel
   if (bv.noMoreBits()) return False;
 
   unsigned vorbis_mapping_count = bv.getBits(6) + 1;
-#ifdef _DEBUG_SETUP_HEADER
+#ifdef DEBUG_SETUP_HEADER
   fprintf(stderr, "\tMappings: vorbis_mapping_count: %d\n", vorbis_mapping_count);
 #endif
   for (unsigned i = 0; i < vorbis_mapping_count; ++i) {
@@ -594,7 +594,7 @@ static Boolean parseVorbisSetup_modes(LEBitVector& bv, OggTrack* track) {
 
   unsigned vorbis_mode_count = bv.getBits(6) + 1;
   unsigned ilog_vorbis_mode_count_minus_1 = ilog(vorbis_mode_count - 1);
-#ifdef _DEBUG_SETUP_HEADER
+#ifdef DEBUG_SETUP_HEADER
   fprintf(stderr, "\tModes: vorbis_mode_count: %d (ilog(%d-1):%d)\n",
 	  vorbis_mode_count, vorbis_mode_count, ilog_vorbis_mode_count_minus_1);
 #endif
@@ -604,7 +604,7 @@ static Boolean parseVorbisSetup_modes(LEBitVector& bv, OggTrack* track) {
 
   for (unsigned i = 0; i < vorbis_mode_count; ++i) {
     track->vtoHdrs.vorbis_mode_blockflag[i] = (u_int8_t)bv.getBits(1);
-#ifdef _DEBUG_SETUP_HEADER
+#ifdef DEBUG_SETUP_HEADER
     fprintf(stderr, "\t\tMode %d: vorbis_mode_blockflag: %d\n", i, track->vtoHdrs.vorbis_mode_blockflag[i]);
 #endif
     bv.skipBits(16+16+8); // "vorbis_mode_windowtype", "vorbis_mode_transformtype", "vorbis_mode_mapping"
@@ -635,7 +635,7 @@ static Boolean parseVorbisSetupHeader(OggTrack* track, u_int8_t const* p, unsign
   return False;
 }
 
-#ifdef _DEBUG
+#ifdef DEBUG
 #define CHECK_PTR if (p >= pEnd) return False
 #define printComment(p, len) do { for (unsigned k = 0; k < len; ++k) { CHECK_PTR; fprintf(stderr, "%c", *p++); } } while (0)
 #endif
@@ -647,7 +647,7 @@ static Boolean validateCommentHeader(u_int8_t const *p, unsigned headerSize,
     return False;
   }
       
-#ifdef _DEBUG
+#ifdef DEBUG
   u_int8_t const* pEnd = &p[headerSize];
   p += 7+isOpus;
 
@@ -726,7 +726,7 @@ Boolean OggFileParser::validateHeader(OggTrack* track, u_int8_t const* p, unsign
           // Why the "2"?  I don't know, but it seems to be necessary
       track->vtoHdrs.uSecsPerPacket[0] = (unsigned)(uSecsPerSample*blocksize_0);
       track->vtoHdrs.uSecsPerPacket[1] = (unsigned)(uSecsPerSample*blocksize_1);
-#ifdef _DEBUG
+#ifdef DEBUG
       fprintf(stderr, "\t%u Hz, %u-channel, %u kbps (est), block sizes: %u,%u (%u,%u us)\n",
 	      track->samplingFrequency, track->numChannels, track->estBitrate,
 	      blocksize_0, blocksize_1,
@@ -765,7 +765,7 @@ Boolean OggFileParser::validateHeader(OggTrack* track, u_int8_t const* p, unsign
       track->vtoHdrs.KFGSHIFT = ((p[40]&3)<<3) | (p[41]>>5);
       u_int32_t FRN = (p[22]<<24) | (p[23]<<16) | (p[24]<<8) | p[25]; // Frame rate numerator
       u_int32_t FRD = (p[26]<<24) | (p[27]<<16) | (p[28]<<8) | p[29]; // Frame rate numerator
-#ifdef _DEBUG
+#ifdef DEBUG
       fprintf(stderr, "\tKFGSHIFT %d, Frame rate numerator %d, Frame rate denominator %d\n", track->vtoHdrs.KFGSHIFT, FRN, FRD);
 #endif
       if (FRN == 0 || FRD == 0) {
@@ -773,7 +773,7 @@ Boolean OggFileParser::validateHeader(OggTrack* track, u_int8_t const* p, unsign
 	return False;
       }
       track->vtoHdrs.uSecsPerFrame = (unsigned)((1000000.0*FRD)/FRN);
-#ifdef _DEBUG
+#ifdef DEBUG
       fprintf(stderr, "\t\t=> %u microseconds per frame\n", track->vtoHdrs.uSecsPerFrame);
 #endif
     } else if (firstByte == 0x81) { // "comment" header
@@ -794,7 +794,7 @@ Boolean OggFileParser::validateHeader(OggTrack* track, u_int8_t const* p, unsign
 }
 
 void OggFileParser::parseAndDeliverPages() {
-#ifdef _DEBUG
+#ifdef DEBUG
   fprintf(stderr, "parsing and delivering data\n");
 #endif
   while (parseAndDeliverPage()) {}
@@ -807,7 +807,7 @@ Boolean OggFileParser::parseAndDeliverPage() {
 
   OggDemuxedTrack* demuxedTrack = fOurDemux->lookupDemuxedTrack(bitstream_serial_number);
   if (demuxedTrack == NULL) { // this track is not being read
-#ifdef _DEBUG
+#ifdef DEBUG
     fprintf(stderr, "\tIgnoring page from unread track; skipping %d remaining packet data bytes\n",
 	    fPacketSizeTable->totSizes);
 #endif
@@ -815,7 +815,7 @@ Boolean OggFileParser::parseAndDeliverPage() {
     return True;
   } else if (fPacketSizeTable->totSizes == 0) {
     // This page is empty (has no packets).  Skip it and continue
-#ifdef _DEBUG
+#ifdef DEBUG
     fprintf(stderr, "\t[track: %s] Skipping empty page\n", demuxedTrack->MIMEtype());
 #endif
     return True;
@@ -840,7 +840,7 @@ Boolean OggFileParser::deliverPacketWithinPage() {
     // Someone has been reading this stream, but isn't right now.
     // We can't deliver this frame until he asks for it, so punt for now.
     // The next time he asks for a frame, he'll get it.
-#ifdef _DEBUG
+#ifdef DEBUG
     fprintf(stderr, "\t[track: %s] Deferring delivery of packet %d (%d bytes%s)\n",
 	    demuxedTrack->MIMEtype(), packetNum, packetSize,
 	    packetNum == fPacketSizeTable->numCompletedPackets ? " (incomplete)" : "");
@@ -849,7 +849,7 @@ Boolean OggFileParser::deliverPacketWithinPage() {
   }
 
   // Deliver the next packet:
-#ifdef _DEBUG
+#ifdef DEBUG
   fprintf(stderr, "\t[track: %s] Delivering packet %d (%d bytes%s)\n", demuxedTrack->MIMEtype(),
 	  packetNum, packetSize,
 	  packetNum == fPacketSizeTable->numCompletedPackets ? " (incomplete)" : "");
@@ -968,7 +968,7 @@ void OggFileParser::parseStartOfPage(u_int8_t& header_type_flag,
     saveParserState(); // ensures forward progress through the file
   }
   skipBytes(4);
-#ifdef _DEBUG
+#ifdef DEBUG
   fprintf(stderr, "\nSaw Ogg page header:\n");
 #endif
 
@@ -978,7 +978,7 @@ void OggFileParser::parseStartOfPage(u_int8_t& header_type_flag,
   }
 
   header_type_flag = get1Byte();
-#ifdef _DEBUG
+#ifdef DEBUG
   fprintf(stderr, "\theader_type_flag: 0x%02x (", header_type_flag);
   if (header_type_flag&0x01) fprintf(stderr, "continuation ");
   if (header_type_flag&0x02) fprintf(stderr, "bos ");
@@ -992,7 +992,7 @@ void OggFileParser::parseStartOfPage(u_int8_t& header_type_flag,
   u_int32_t page_sequence_number = byteSwap(get4Bytes());
   u_int32_t CRC_checksum = byteSwap(get4Bytes());
   u_int8_t number_page_segments = get1Byte();
-#ifdef _DEBUG
+#ifdef DEBUG
   fprintf(stderr, "\tgranule_position 0x%08x%08x, bitstream_serial_number 0x%08x, page_sequence_number 0x%08x, CRC_checksum 0x%08x, number_page_segments %d\n", granule_position2, granule_position1, bitstream_serial_number, page_sequence_number, CRC_checksum, number_page_segments);
 #else
   // Dummy statements to prevent 'unused variable' compiler warnings:
@@ -1006,24 +1006,24 @@ void OggFileParser::parseStartOfPage(u_int8_t& header_type_flag,
   // Look at the "segment_table" to count the sizes of the packets in this page:
   delete fPacketSizeTable/*if any*/; fPacketSizeTable = new PacketSizeTable(number_page_segments);
   u_int8_t lacing_value = 0;
-#ifdef _DEBUG
+#ifdef DEBUG
   fprintf(stderr, "\tsegment_table\n");
 #endif
   for (unsigned i = 0; i < number_page_segments; ++i) {
     lacing_value = get1Byte();
-#ifdef _DEBUG
+#ifdef DEBUG
     fprintf(stderr, "\t\t%d:\t%d", i, lacing_value);
 #endif
     fPacketSizeTable->totSizes += lacing_value;
     fPacketSizeTable->size[fPacketSizeTable->numCompletedPackets] += lacing_value;
     if (lacing_value < 255) {
       // This completes a packet:
-#ifdef _DEBUG
+#ifdef DEBUG
       fprintf(stderr, " (->%d)", fPacketSizeTable->size[fPacketSizeTable->numCompletedPackets]);
 #endif
       ++fPacketSizeTable->numCompletedPackets;
     }
-#ifdef _DEBUG
+#ifdef DEBUG
     fprintf(stderr, "\n");
 #endif
   }

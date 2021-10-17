@@ -186,7 +186,7 @@ void MP3FrameParams::setParamsFromHeader() {
   stereo    = (mode == MPG_MD_MONO) ? 1 : 2;
 
   if (((hdr>>10)&0x3) == 0x3) {
-#ifdef _DEBUG_ERRORS
+#ifdef DEBUG_ERRORS
     fprintf(stderr,"Stream error - hdr: 0x%08x\n", hdr);
 #endif
   }
@@ -273,7 +273,7 @@ static unsigned updateSideInfoSizes(MP3SideInfo& sideInfo, Boolean isMPEG2,
 
   /* ASSERT: (p23L0Trunc <= p23L0) && (p23l1Trunc <= p23L1) */
   p23L0 -= p23L0Trunc; p23L1 -= p23L1Trunc;
-#ifdef _DEBUG
+#ifdef DEBUG
   fprintf(stderr, "updateSideInfoSizes (allowed: %d): %d->%d, %d->%d\n", allowedNumBits, p23L0+p23L0Trunc, p23L0, p23L1+p23L1Trunc, p23L1);
 #endif
 
@@ -335,7 +335,7 @@ Boolean GetADUInfoFromMP3Frame(unsigned char const* framePtr,
   numBits += sideInfo.ch[1].gr[0].part2_3_length;
   numBits += sideInfo.ch[1].gr[1].part2_3_length;
   aduSize = (numBits+7)/8;
-#ifdef _DEBUG
+#ifdef DEBUG
   fprintf(stderr, "mp3GetADUInfoFromFrame: hdr: %08x, frameSize: %d, part2_3_lengths: %d,%d,%d,%d, aduSize: %d, backpointer: %d\n", hdr, frameSize, sideInfo.ch[0].gr[0].part2_3_length, sideInfo.ch[0].gr[1].part2_3_length, sideInfo.ch[1].gr[0].part2_3_length, sideInfo.ch[1].gr[1].part2_3_length, aduSize, backpointer);
 #endif
 
@@ -397,7 +397,7 @@ static void getSideInfo1(MP3FrameParams& fr, MP3SideInfo& si,
 	     = gr_info.pow2gain + ((gr_info.subblock_gain[i])<<3);
 	 }
 
-#ifdef _DEBUG_ERRORS
+#ifdef DEBUG_ERRORS
          if (gr_info.block_type == 0) {
            fprintf(stderr,"Blocktype == 0 and window-switching == 1 not allowed.\n");
          }
@@ -476,7 +476,7 @@ static void getSideInfo2(MP3FrameParams& fr, MP3SideInfo& si,
 	     = gr_info.pow2gain + ((gr_info.subblock_gain[i])<<3);
 	 }
 
-#ifdef _DEBUG_ERRORS
+#ifdef DEBUG_ERRORS
          if (gr_info.block_type == 0) {
            fprintf(stderr,"Blocktype == 0 and window-switching == 1 not allowed.\n");
          }
@@ -756,7 +756,7 @@ unsigned TranscodeMP3ADU(unsigned char const* fromPtr, unsigned fromSize,
 			  part23Length0b, part23Length0bTruncation,
 			  part23Length1a, part23Length1aTruncation,
 			  part23Length1b, part23Length1bTruncation);
-#ifdef _DEBUG
+#ifdef DEBUG
 fprintf(stderr, "shrinkage %d->%d [(%d,%d),(%d,%d)] (trunc: [(%d,%d),(%d,%d)]) {%d}\n", inAduSize, (numAduBits+7)/8,
 	      part23Length0a, part23Length0b, part23Length1a, part23Length1b,
 	      part23Length0aTruncation, part23Length0bTruncation,

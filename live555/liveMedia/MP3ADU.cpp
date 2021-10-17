@@ -199,7 +199,7 @@ Boolean ADUFromMP3Source::doGetNextFrame1() {
   fDurationInMicroseconds = tailSeg->durationInMicroseconds;
   unsigned descriptorSize
     = fIncludeADUdescriptors ? ADUdescriptor::computeSize(fFrameSize) : 0;
-#ifdef _DEBUG
+#ifdef DEBUG
   fprintf(stderr, "m->a:outputting ADU %d<-%d, nbr:%d, sis:%d, dh:%d, (descriptor size: %d)\n", tailSeg->aduSize, tailSeg->backpointer, fFrameSize, tailSeg->sideInfoSize, tailSeg->dataHere(), descriptorSize);
 #endif
   if (descriptorSize + fFrameSize > fMaxSize) {
@@ -408,7 +408,7 @@ void MP3FromADUSource::insertDummyADUsIfNecessary() {
 
     if (tailSeg->backpointer > prevADUend) {
       // We need to insert a dummy ADU in front of the tail
-#ifdef _DEBUG
+#ifdef DEBUG
       fprintf(stderr, "a->m:need to insert a dummy ADU (%d, %d, %d) [%d, %d]\n", tailSeg->backpointer, prevADUend, tailSeg->dataHere(), fSegments->headIndex(), fSegments->nextFreeIndex());
 #endif
       tailIndex = fSegments->nextFreeIndex();
@@ -425,7 +425,7 @@ Boolean MP3FromADUSource::generateFrameFromHeadADU() {
     if (fSegments->isEmpty()) return False;
     unsigned index = fSegments->headIndex();
     Segment* seg = &(fSegments->headSegment());
-#ifdef _DEBUG
+#ifdef DEBUG
     fprintf(stderr, "a->m:outputting frame for %d<-%d (fs %d, dh %d), (descriptorSize: %d)\n", seg->aduSize, seg->backpointer, seg->frameSize, seg->dataHere(), seg->descriptorSize);
 #endif
     unsigned char* toPtr = fTo;
@@ -468,7 +468,7 @@ Boolean MP3FromADUSource::generateFrameFromHeadADU() {
 
 	// we may need some padding bytes beforehand
 	unsigned bytesToZero = startOfData - toOffset;
-#ifdef _DEBUG
+#ifdef DEBUG
 	if (bytesToZero > 0) fprintf(stderr, "a->m:outputting %d zero bytes (%d, %d, %d, %d)\n", bytesToZero, startOfData, toOffset, frameOffset, seg->backpointer);
 #endif
 	toOffset += bytesToZero;
@@ -477,7 +477,7 @@ Boolean MP3FromADUSource::generateFrameFromHeadADU() {
       unsigned char* fromPtr
 	= &seg->dataStart()[seg->headerSize + seg->sideInfoSize + fromOffset];
       unsigned bytesUsedHere = endOfData - startOfData;
-#ifdef _DEBUG
+#ifdef DEBUG
       if (bytesUsedHere > 0) fprintf(stderr, "a->m:outputting %d bytes from %d<-%d\n", bytesUsedHere, seg->aduSize, seg->backpointer);
 #endif
       memmove(toPtr + toOffset, fromPtr, bytesUsedHere);
@@ -536,7 +536,7 @@ void SegmentQueue::sqAfterGettingSegment(void* clientData,
   seg.durationInMicroseconds = durationInMicroseconds;
 
   if (segQueue->sqAfterGettingCommon(seg, numBytesRead)) {
-#ifdef _DEBUG
+#ifdef DEBUG
     char const* direction = segQueue->fDirectionIsToADU ? "m->a" : "a->m";
     fprintf(stderr, "%s:read frame %d<-%d, fs:%d, sis:%d, dh:%d, (descriptor size: %d)\n", direction, seg.aduSize, seg.backpointer, seg.frameSize, seg.sideInfoSize, seg.dataHere(), seg.descriptorSize);
 #endif

@@ -50,7 +50,7 @@ ServerMediaSubsession* OggFileServerDemux
 
   ServerMediaSubsession* result = OggFileServerMediaSubsession::createNew(*this, track);
   if (result != NULL) {
-#ifdef _DEBUG
+#ifdef DEBUG
     fprintf(stderr, "Created 'ServerMediaSubsession' object for track #%d: (%s)\n", track->trackNumber, track->mimeType);
 #endif
   }

@@ -190,7 +190,7 @@ void H264or5VideoStreamParser
     = removeH264or5EmulationBytes(nalUnitCopy, maxSize, nalUnitOrig, numBytesInNALunit);
 }
 
-#ifdef _DEBUG
+#ifdef DEBUG
 char const* nal_unit_type_description_h264[32] = {
   "Unspecified", //0
   "Coded slice of a non-IDR picture", //1
@@ -293,7 +293,7 @@ char const* nal_unit_type_description_h265[64] = {
 };
 #endif
 
-#ifdef _DEBUG
+#ifdef DEBUG
 static unsigned numDebugTabs = 1;
 #define DEBUG_PRINT_TABS for (unsigned _i = 0; _i < numDebugTabs; ++_i) fprintf(stderr, "\t")
 #define DEBUG_PRINT(x) do { DEBUG_PRINT_TABS; fprintf(stderr, "%s: %d\n", #x, x); } while (0)
@@ -768,7 +768,7 @@ void H264or5VideoStreamParser
 
 #define SEI_MAX_SIZE 5000 // larger than the largest possible SEI NAL unit
 
-#ifdef _DEBUG
+#ifdef DEBUG
 #define MAX_SEI_PAYLOAD_TYPE_DESCRIPTION_H264 46
 char const* sei_payloadType_description_h264[MAX_SEI_PAYLOAD_TYPE_DESCRIPTION_H264+1] = {
   "buffering_period", //0
@@ -841,7 +841,7 @@ void H264or5VideoStreamParser::analyze_sei_data(u_int8_t nal_unit_type) {
     } while (sei[j++] == 255 && j < seiSize);
     if (j >= seiSize) break;
 
-#ifdef _DEBUG
+#ifdef DEBUG
     char const* description;
     if (fHNumber == 264) {
       unsigned descriptionNum = payloadType <= MAX_SEI_PAYLOAD_TYPE_DESCRIPTION_H264
@@ -924,7 +924,7 @@ void H264or5VideoStreamParser
       if (DeltaTfiDivisor != prevDeltaTfiDivisor && fParsedFrameRate != 0.0) {
 	  usingSource()->fFrameRate = fParsedFrameRate
 	    = fParsedFrameRate*(prevDeltaTfiDivisor/DeltaTfiDivisor);
-#ifdef _DEBUG
+#ifdef DEBUG
 	  fprintf(stderr, "Changed frame rate to %f fps\n", usingSource()->fFrameRate);
 #endif
       }
@@ -966,7 +966,7 @@ unsigned H264or5VideoStreamParser::parse() {
       // We hit EOF the last time that we tried to parse this data, so we know that any remaining unparsed data
       // forms a complete NAL unit, and that there's no 'start code' at the end:
       unsigned remainingDataSize = totNumValidBytes() - curOffset();
-#ifdef _DEBUG
+#ifdef DEBUG
       unsigned const trailingNALUnitSize = remainingDataSize;
 #endif
       while (remainingDataSize > 0) {
@@ -979,7 +979,7 @@ unsigned H264or5VideoStreamParser::parse() {
 	--remainingDataSize;
       }
 
-#ifdef _DEBUG
+#ifdef DEBUG
       if (fHNumber == 264) {
 	u_int8_t nal_ref_idc = (fFirstByteOfNALUnit&0x60)>>5;
 	u_int8_t nal_unit_type = fFirstByteOfNALUnit&0x1F;
@@ -1027,14 +1027,14 @@ unsigned H264or5VideoStreamParser::parse() {
     u_int8_t nal_unit_type;
     if (fHNumber == 264) {
       nal_unit_type = fFirstByteOfNALUnit&0x1F;
-#ifdef _DEBUG
+#ifdef DEBUG
       u_int8_t nal_ref_idc = (fFirstByteOfNALUnit&0x60)>>5;
       fprintf(stderr, "Parsed %d-byte NAL-unit (nal_ref_idc: %d, nal_unit_type: %d (\"%s\"))\n",
 	      curFrameSize()-fOutputStartCodeSize, nal_ref_idc, nal_unit_type, nal_unit_type_description_h264[nal_unit_type]);
 #endif
     } else { // 265
       nal_unit_type = (fFirstByteOfNALUnit&0x7E)>>1;
-#ifdef _DEBUG
+#ifdef DEBUG
       fprintf(stderr, "Parsed %d-byte NAL-unit (nal_unit_type: %d (\"%s\"))\n",
 	      curFrameSize()-fOutputStartCodeSize, nal_unit_type, nal_unit_type_description_h265[nal_unit_type]);
 #endif
@@ -1053,11 +1053,11 @@ unsigned H264or5VideoStreamParser::parse() {
 	if (time_scale > 0 && num_units_in_tick > 0) {
 	  usingSource()->fFrameRate = fParsedFrameRate
 	    = time_scale/(DeltaTfiDivisor*num_units_in_tick);
-#ifdef _DEBUG
+#ifdef DEBUG
 	  fprintf(stderr, "Set frame rate to %f fps\n", usingSource()->fFrameRate);
 #endif
 	} else {
-#ifdef _DEBUG
+#ifdef DEBUG
 	  fprintf(stderr, "\tThis \"Video Parameter Set\" NAL unit contained no frame rate information, so we use a default frame rate of %f fps\n", usingSource()->fFrameRate);
 #endif
 	}
@@ -1074,11 +1074,11 @@ unsigned H264or5VideoStreamParser::parse() {
 	if (time_scale > 0 && num_units_in_tick > 0) {
 	  usingSource()->fFrameRate = fParsedFrameRate
 	    = time_scale/(DeltaTfiDivisor*num_units_in_tick);
-#ifdef _DEBUG
+#ifdef DEBUG
 	  fprintf(stderr, "Set frame rate to %f fps\n", usingSource()->fFrameRate);
 #endif
 	} else {
-#ifdef _DEBUG
+#ifdef DEBUG
 	  fprintf(stderr, "\tThis \"Sequence Parameter Set\" NAL unit contained no frame rate information, so we use a default frame rate of %f fps\n", usingSource()->fFrameRate);
 #endif
 	}
@@ -1092,7 +1092,7 @@ unsigned H264or5VideoStreamParser::parse() {
     }
 
     usingSource()->setPresentationTime();
-#ifdef _DEBUG
+#ifdef DEBUG
     unsigned long secs = (unsigned long)usingSource()->fPresentationTime.tv_sec;
     unsigned uSecs = (unsigned)usingSource()->fPresentationTime.tv_usec;
     fprintf(stderr, "\tPresentation time: %lu.%06u\n", secs, uSecs);
@@ -1133,7 +1133,7 @@ unsigned H264or5VideoStreamParser::parse() {
     }
 	
     if (thisNALUnitEndsAccessUnit) {
-#ifdef _DEBUG
+#ifdef DEBUG
       fprintf(stderr, "*****This NAL unit ends the current access unit*****\n");
 #endif
       usingSource()->fPictureEndMarker = True;
@@ -1151,7 +1151,7 @@ unsigned H264or5VideoStreamParser::parse() {
 
     return curFrameSize();
   } catch (int /*e*/) {
-#ifdef _DEBUG
+#ifdef DEBUG
     fprintf(stderr, "H264or5VideoStreamParser::parse() EXCEPTION (This is normal behavior - *not* an error)\n");
 #endif
     return 0;  // the parsing got interrupted

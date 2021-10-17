@@ -14,9 +14,6 @@
     <Filter Include="liveMedia">
       <UniqueIdentifier>{08fba072-7217-4b3a-b8b9-755a47b98236}</UniqueIdentifier>
     </Filter>
-    <Filter Include="mediaServer">
-      <UniqueIdentifier>{9eae07ad-9fcf-406c-a3ff-292f09fd3a2a}</UniqueIdentifier>
-    </Filter>
     <Filter Include="UsageEnvironment">
       <UniqueIdentifier>{35775df7-8a41-4ecf-aed3-a5b34285232d}</UniqueIdentifier>
     </Filter>
@@ -573,12 +570,6 @@
     </ClCompile>
     <ClCompile Include="liveMedia\WAVAudioFileSource.cpp">
       <Filter>liveMedia</Filter>
-    </ClCompile>
-    <ClCompile Include="mediaServer\DynamicRTSPServer.cpp">
-      <Filter>mediaServer</Filter>
-    </ClCompile>
-    <ClCompile Include="mediaServer\live555MediaServer.cpp">
-      <Filter>mediaServer</Filter>
     </ClCompile>
     <ClCompile Include="UsageEnvironment\HashTable.cpp">
       <Filter>UsageEnvironment</Filter>
@@ -1151,12 +1142,6 @@
     </ClInclude>
     <ClInclude Include="liveMedia\StreamParser.hh">
       <Filter>liveMedia</Filter>
-    </ClInclude>
-    <ClInclude Include="mediaServer\DynamicRTSPServer.hh">
-      <Filter>mediaServer</Filter>
-    </ClInclude>
-    <ClInclude Include="mediaServer\version.hh">
-      <Filter>mediaServer</Filter>
     </ClInclude>
     <ClInclude Include="UsageEnvironment\include\Boolean.hh">
       <Filter>UsageEnvironment</Filter>
